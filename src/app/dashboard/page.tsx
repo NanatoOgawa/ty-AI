@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase/client";
 import { getStats } from "../../lib/database";
 import type { User } from "@supabase/supabase-js";
+import type { UserStats } from "../../types";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({ messageCount: 0, customerCount: 0, monthlyCount: 0 });
+  const [stats, setStats] = useState<UserStats>({ messageCount: 0, customerCount: 0, monthlyCount: 0 });
   const router = useRouter();
 
   useEffect(() => {

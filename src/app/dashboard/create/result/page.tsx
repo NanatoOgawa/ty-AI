@@ -4,16 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
-
-interface MessageResult {
-  message: string;
-  note?: string;
-}
+import type { GenerateMessageResponse } from "../../../../types";
 
 export default function MessageResultPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [result, setResult] = useState<MessageResult | null>(null);
+  const [result, setResult] = useState<GenerateMessageResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

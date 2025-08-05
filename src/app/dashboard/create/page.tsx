@@ -7,26 +7,22 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Textarea } from "../../../components/ui/textarea";
+import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
-
-interface CustomerInfo {
-  customerName: string;
-  whatHappened: string;
-  messageType: string;
-  tone: string;
-}
+import type { GenerateMessageRequest } from "../../../types";
+import { MESSAGE_TYPES, TONES } from "../../../types";
 
 export default function CreateMessagePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
+  const [customerInfo, setCustomerInfo] = useState<GenerateMessageRequest>({
     customerName: "",
     whatHappened: "",
-    messageType: "thank_you",
-    tone: "professional"
+    messageType: MESSAGE_TYPES.THANK_YOU,
+    tone: TONES.PROFESSIONAL
   });
 
-  const handleInputChange = (field: keyof CustomerInfo, value: string) => {
+  const handleInputChange = (field: keyof GenerateMessageRequest, value: string) => {
     setCustomerInfo(prev => ({
       ...prev,
       [field]: value
@@ -62,8 +58,6 @@ export default function CreateMessagePage() {
 
       // データベースに保存
       try {
-        console.log('Saving to database...');
-        
         // お客様情報を取得または作成
         const { getOrCreateCustomer, saveMessageHistory } = await import('../../../lib/database');
         const customer = await getOrCreateCustomer(user, customerInfo.customerName);
@@ -78,8 +72,6 @@ export default function CreateMessagePage() {
           customerInfo.tone,
           data.message
         );
-        
-        console.log('Successfully saved to database');
       } catch (dbError) {
         console.error('Database save error:', dbError);
         // データベース保存に失敗してもメッセージ生成は成功させる
@@ -100,24 +92,11 @@ export default function CreateMessagePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                ← ダッシュボードに戻る
-              </button>
-              <h1 className="text-xl font-semibold text-gray-900">
-                新規メッセージ作成
-              </h1>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PageHeader 
+        title="新規メッセージ作成" 
+        showBackButton={true} 
+        backUrl="/dashboard"
+      />
 
       {/* メインコンテンツ */}
       <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">

@@ -4,22 +4,23 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
-import { createClient } from "../../../lib/supabase/client";
-import { getMessageHistory, getStats, type MessageHistory } from "../../../lib/database";
+import { supabase } from "../../../lib/supabase/client";
+import { getMessageHistory, getStats } from "../../../lib/database";
 import type { User } from "@supabase/supabase-js";
+import type { MessageHistory, UserStats, MESSAGE_TYPE_LABELS, TONE_LABELS } from "../../../types";
 
 export default function MessageHistoryPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<MessageHistory[]>([]);
-  const [stats, setStats] = useState({ messageCount: 0, customerCount: 0, monthlyCount: 0 });
+  const [stats, setStats] = useState<UserStats>({ messageCount: 0, customerCount: 0, monthlyCount: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState<string>("all");
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const supabase = createClient();
+
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
@@ -67,23 +68,11 @@ export default function MessageHistoryPage() {
   };
 
   const getMessageTypeLabel = (type: string) => {
-    const typeMap: { [key: string]: string } = {
-      'thank_you': 'お礼メッセージ',
-      'follow_up': 'フォローアップ',
-      'appreciation': '感謝のメッセージ',
-      'celebration': 'お祝いメッセージ'
-    };
-    return typeMap[type] || type;
+    return MESSAGE_TYPE_LABELS[type] || type;
   };
 
   const getToneLabel = (tone: string) => {
-    const toneMap: { [key: string]: string } = {
-      'professional': 'ビジネスライク',
-      'friendly': '親しみやすい',
-      'formal': 'フォーマル',
-      'casual': 'カジュアル'
-    };
-    return toneMap[tone] || tone;
+    return TONE_LABELS[tone] || tone;
   };
 
   // お客様名の一覧を取得

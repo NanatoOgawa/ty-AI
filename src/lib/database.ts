@@ -1,41 +1,8 @@
 import { createClient } from './supabase/client';
 import type { User } from '@supabase/supabase-js';
+import type { Customer, MessageHistory, UserStats } from '../types';
 
-export interface Customer {
-  id: string;
-  name: string;
-  notes?: string;
-  created_at: string;
-}
 
-export interface MessageHistory {
-  id: string;
-  customer_id?: string;
-  customer_name: string;
-  what_happened: string;
-  message_type: string;
-  tone: string;
-  generated_message: string;
-  created_at: string;
-}
-
-// お客様の取得
-export async function getCustomers(user: User): Promise<Customer[]> {
-  const supabase = createClient();
-  
-  const { data, error } = await supabase
-    .from('customers')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('name', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching customers:', error);
-    throw error;
-  }
-
-  return data || [];
-}
 
 // お客様の作成または取得
 export async function getOrCreateCustomer(
@@ -44,7 +11,7 @@ export async function getOrCreateCustomer(
 ): Promise<Customer> {
   const supabase = createClient();
   
-  console.log('Searching for existing customer:', customerName, 'for user:', user.id);
+
   
   // 既存のお客様を検索
   const { data: existingCustomer, error: searchError } = await supabase
@@ -59,11 +26,8 @@ export async function getOrCreateCustomer(
   }
 
   if (existingCustomer) {
-    console.log('Found existing customer:', existingCustomer.id);
     return existingCustomer;
   }
-
-  console.log('Creating new customer:', customerName);
   
   // 新しいお客様を作成
   const { data: newCustomer, error } = await supabase
@@ -80,7 +44,6 @@ export async function getOrCreateCustomer(
     throw error;
   }
 
-  console.log('Created new customer:', newCustomer.id);
   return newCustomer;
 }
 
@@ -96,13 +59,7 @@ export async function saveMessageHistory(
 ): Promise<void> {
   const supabase = createClient();
   
-  console.log('Saving message history with data:', {
-    user_id: user.id,
-    customer_id: customerId,
-    customer_name: customerName,
-    message_type: messageType,
-    tone: tone
-  });
+
   
   const { error } = await supabase
     .from('message_history')
@@ -121,7 +78,7 @@ export async function saveMessageHistory(
     throw error;
   }
   
-  console.log('Message history saved successfully');
+
 }
 
 // メッセージ履歴の取得
@@ -142,30 +99,10 @@ export async function getMessageHistory(user: User): Promise<MessageHistory[]> {
   return data || [];
 }
 
-// 特定のお客様のメッセージ履歴を取得
-export async function getCustomerMessageHistory(
-  user: User,
-  customerName: string
-): Promise<MessageHistory[]> {
-  const supabase = createClient();
-  
-  const { data, error } = await supabase
-    .from('message_history')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('customer_name', customerName)
-    .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching customer message history:', error);
-    throw error;
-  }
-
-  return data || [];
-}
 
 // 統計情報の取得
-export async function getStats(user: User) {
+export async function getStats(user: User): Promise<UserStats> {
   const supabase = createClient();
   
   // 作成済みメッセージ数
