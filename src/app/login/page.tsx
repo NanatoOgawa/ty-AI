@@ -3,14 +3,57 @@
 import { useEffect, useState } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { supabase } from "@/lib/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "../../lib/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 
 export default function LoginPage() {
   const [redirectUrl, setRedirectUrl] = useState("");
+  const [error, setError] = useState("");
+  const [debugInfo, setDebugInfo] = useState("");
 
   useEffect(() => {
-    setRedirectUrl(`${window.location.origin}/dashboard`);
+    console.log("Login page: Component mounted");
+    
+    // デバッグ情報を収集
+    const debugData = {
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      timestamp: new Date().toISOString(),
+    };
+    
+    console.log("Login page debug info:", debugData);
+    setDebugInfo(JSON.stringify(debugData, null, 2));
+
+    // クライアントサイドでのみwindowオブジェクトにアクセス
+    const url = `${window.location.origin}/dashboard`;
+    console.log("Login page: Setting redirect URL to:", url);
+    setRedirectUrl(url);
+
+    // 認証状態の監視
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Login page: Auth state change:", { event, session: !!session });
+      
+      if (event === 'SIGNED_IN' && session) {
+        console.log("Login page: User signed in, redirecting to dashboard");
+        window.location.href = '/dashboard';
+      }
+    });
+
+    // CSPエラーの監視
+    const originalError = console.error;
+    console.error = (...args) => {
+      const errorMessage = args.join(' ');
+      console.log("Login page: Error detected:", errorMessage);
+      if (errorMessage.includes('Content Security Policy') || errorMessage.includes('eval')) {
+        setError(prev => prev + "\nCSP Error: " + errorMessage);
+      }
+      originalError.apply(console, args);
+    };
+
+    return () => {
+      console.error = originalError;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -30,24 +73,52 @@ export default function LoginPage() {
               アカウントにログインしてサービスをご利用ください
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <p className="text-sm text-red-600 whitespace-pre-wrap">
+                  エラー: {error}
+                </p>
+              </div>
+            )}
+
+            {debugInfo && (
+              <details className="bg-gray-50 border border-gray-200 rounded-md p-4">
+                <summary className="text-sm font-medium text-gray-700 cursor-pointer">
+                  デバッグ情報
+                </summary>
+                <pre className="text-xs text-gray-600 mt-2 whitespace-pre-wrap">
+                  {debugInfo}
+                </pre>
+              </details>
+            )}
+
             {redirectUrl && (
-              <Auth
-                supabaseClient={supabase}
-                appearance={{
-                  theme: ThemeSupa,
-                  variables: {
-                    default: {
-                      colors: {
-                        brand: "#3b82f6",
-                        brandAccent: "#2563eb",
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  リダイレクト先: {redirectUrl}
+                </p>
+                <Auth
+                  supabaseClient={supabase}
+                  appearance={{
+                    theme: ThemeSupa,
+                    variables: {
+                      default: {
+                        colors: {
+                          brand: "#3b82f6",
+                          brandAccent: "#2563eb",
+                        },
                       },
                     },
-                  },
-                }}
-                providers={["google"]}
-                redirectTo={redirectUrl}
-              />
+                  }}
+                  providers={["google"]}
+                  redirectTo={redirectUrl}
+                  onError={(error) => {
+                    console.error("Login page: Auth error:", error);
+                    setError(error.message);
+                  }}
+                />
+              </div>
             )}
           </CardContent>
         </Card>
