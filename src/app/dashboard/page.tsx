@@ -63,13 +63,13 @@ export default function DashboardPage() {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
+    }
+    
+    if (!user) {
     return null;
-  }
+    }
 
-  return (
+    return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b">
@@ -78,7 +78,7 @@ export default function DashboardPage() {
             <div className="flex items-center">
               <h1 className="text-xl font-semibold text-gray-900">
                 リピートつながるAI
-              </h1>
+            </h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
@@ -104,7 +104,7 @@ export default function DashboardPage() {
           {/* ウェルカムメッセージ */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              ようこそ、{user.email}さん
+            ようこそ、{user.email}さん
             </h2>
             <p className="text-gray-600">
               AIがあなたのお客様との関係を深めるお礼メッセージを生成します。
@@ -255,13 +255,13 @@ export default function DashboardPage() {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">今月の使用回数</p>
                     <p className="text-2xl font-semibold text-gray-900">{stats.monthlyCount}</p>
-                  </div>
-                </div>
-              </div>
+          </div>
+        </div>
+      </div>
             </div>
           </div>
         </div>
       </main>
-    </div>
-  );
+      </div>
+    );
 } 

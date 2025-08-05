@@ -77,6 +77,15 @@ ${prompt}`
     if (!apiResponse.ok) {
       const errorData = await apiResponse.json().catch(() => ({}));
       console.error('Gemini API error:', errorData);
+      
+      // Gemini APIが過負荷の場合は適切なエラーメッセージを返す
+      if (apiResponse.status === 503 || errorData.error?.status === 'UNAVAILABLE') {
+        return NextResponse.json(
+          { error: 'AIサービスが一時的に利用できません。しばらく時間をおいてから再度お試しください。' },
+          { status: 503 }
+        );
+      }
+      
       throw new Error(`Gemini API error: ${apiResponse.status} - ${errorData.error?.message || 'Unknown error'}`);
     }
 

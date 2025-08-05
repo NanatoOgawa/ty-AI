@@ -8,10 +8,9 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Textarea } from "../../../components/ui/textarea";
 import { PageHeader } from "../../../components/common/PageHeader";
-import { MessagePreview } from "../../../components/common/MessagePreview";
 import { supabase } from "../../../lib/supabase/client";
 import type { GenerateMessageRequest } from "../../../types";
-import { MESSAGE_TYPES, TONES, MESSAGE_TYPE_LABELS, TONE_LABELS } from "../../../types";
+import { MESSAGE_TYPES, TONES } from "../../../types";
 
 export default function CreateMessagePage() {
   const router = useRouter();
@@ -22,7 +21,6 @@ export default function CreateMessagePage() {
     messageType: MESSAGE_TYPES.THANK_YOU,
     tone: TONES.PROFESSIONAL
   });
-  const [showPreview, setShowPreview] = useState(false);
 
   const handleInputChange = (field: keyof GenerateMessageRequest, value: string) => {
     setCustomerInfo(prev => ({
@@ -186,18 +184,6 @@ export default function CreateMessagePage() {
                   </div>
                 </div>
 
-                {/* プレビューボタン */}
-                <div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="w-full h-10 text-sm"
-                  >
-                    {showPreview ? "👁️ プレビューを隠す" : "👁️ プレビュー表示"}
-                  </Button>
-                </div>
-
                 {/* 生成ボタン */}
                 <div>
                   <Button
@@ -218,53 +204,6 @@ export default function CreateMessagePage() {
               </form>
             </CardContent>
           </Card>
-
-          {/* プレビューエリア */}
-          {showPreview && (
-            <div className="space-y-4">
-              <MessagePreview
-                messageType={customerInfo.messageType}
-                tone={customerInfo.tone}
-                customerName={customerInfo.customerName || "田中太郎"}
-                whatHappened={customerInfo.whatHappened || "商品をご購入いただき"}
-              />
-              
-              {/* 他のテンプレートのプレビュー */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">🔄 他のテンプレート</CardTitle>
-                  <CardDescription className="text-sm">
-                    タップして切り替え
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {Object.values(MESSAGE_TYPES).map((type) => (
-                      <div key={type} className="space-y-2">
-                        <h4 className="font-medium text-gray-900 text-sm">{MESSAGE_TYPE_LABELS[type]}</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {Object.values(TONES).map((tone) => (
-                            <Button
-                              key={tone}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                handleInputChange('messageType', type);
-                                handleInputChange('tone', tone);
-                              }}
-                              className="text-xs h-8"
-                            >
-                              {TONE_LABELS[tone]}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </div>
       </main>
     </div>
