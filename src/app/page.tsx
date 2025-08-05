@@ -1,30 +1,26 @@
-import { redirect } from "next/navigation";
-import { createClient } from "../lib/supabase/server";
+import { redirect } from 'next/navigation';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
-export default async function Home() {
-  try {
-    console.log("Root page: Starting authentication check");
-    
-    const supabase = await createClient();
-    console.log("Root page: Supabase client created");
-    
-    const { data: { user }, error } = await supabase.auth.getUser();
-    console.log("Root page: Auth result:", { user: user?.email || "null", error });
-
-    if (error) {
-      console.error("Root page: Auth error:", error);
-      redirect("/login");
+export default async function HomePage() {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+      },
     }
+  );
 
-    if (user) {
-      console.log("Root page: User authenticated, redirecting to dashboard");
-      redirect("/dashboard");
-    } else {
-      console.log("Root page: No user, redirecting to login");
-      redirect("/login");
-    }
-  } catch (error) {
-    console.error("Root page: Unexpected error:", error);
-    redirect("/login");
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (session) {
+    redirect('/dashboard');
+  } else {
+    redirect('/login');
   }
-}
+} 

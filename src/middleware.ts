@@ -1,70 +1,53 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  console.log("Middleware: Processing request", {
-    pathname: request.nextUrl.pathname,
-    url: request.url
-  });
-
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll();
+        get(name: string) {
+          return request.cookies.get(name)?.value;
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
+        set(name: string, value: string, options: any) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
           });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          });
         },
       },
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
 
-  console.log("Middleware: Auth check", {
-    pathname: request.nextUrl.pathname,
-    hasUser: !!user,
-    userEmail: user?.email || "null"
-  });
+  // パブリックルート（認証不要）
+  const publicRoutes = ['/login', '/auth/callback', '/auth/signout', '/dashboard', '/api'];
+  const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route));
 
-  // ログインページとAPIルート、デバッグページは認証不要
-  if (request.nextUrl.pathname.startsWith("/login") ||
-      request.nextUrl.pathname.startsWith("/api") ||
-      request.nextUrl.pathname.startsWith("/auth-status") ||
-      request.nextUrl.pathname.startsWith("/auth/callback") ||
-      request.nextUrl.pathname.startsWith("/test-auth") ||
-      request.nextUrl.pathname.startsWith("/debug")) {
-    console.log("Middleware: Allowing access to public route");
-    return supabaseResponse;
+  if (isPublicRoute) {
+    return NextResponse.next();
   }
 
-  // 未認証ユーザーはログインページにリダイレクト
-  if (!user) {
-    console.log("Middleware: No user found, redirecting to login");
-    return NextResponse.redirect(new URL("/login", request.url));
+  // 認証が必要なルート
+  if (!session) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  console.log("Middleware: User authenticated, allowing access");
-  return supabaseResponse;
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }; 
