@@ -8,9 +8,10 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Textarea } from "../../../components/ui/textarea";
 import { PageHeader } from "../../../components/common/PageHeader";
+import { MessagePreview } from "../../../components/common/MessagePreview";
 import { supabase } from "../../../lib/supabase/client";
 import type { GenerateMessageRequest } from "../../../types";
-import { MESSAGE_TYPES, TONES } from "../../../types";
+import { MESSAGE_TYPES, TONES, MESSAGE_TYPE_LABELS, TONE_LABELS } from "../../../types";
 
 export default function CreateMessagePage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function CreateMessagePage() {
     messageType: MESSAGE_TYPES.THANK_YOU,
     tone: TONES.PROFESSIONAL
   });
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleInputChange = (field: keyof GenerateMessageRequest, value: string) => {
     setCustomerInfo(prev => ({
@@ -29,7 +31,7 @@ export default function CreateMessagePage() {
     }));
   };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -98,42 +100,41 @@ export default function CreateMessagePage() {
         backUrl="/dashboard"
       />
 
-      {/* メインコンテンツ */}
-      <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* 簡潔な入力フォーム */}
-            <Card>
-              <CardHeader>
-                <CardTitle>📝 簡単入力フォーム</CardTitle>
-                <CardDescription>
-                  仕事の合間に素早く入力できるよう、必要最小限の項目にしました
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+      <main className="max-w-md mx-auto py-4 px-4">
+        <div className="space-y-4">
+          {/* 入力フォーム */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl">💬 メッセージ作成</CardTitle>
+              <CardDescription className="text-sm">
+                隙間時間でサクッと作成
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* 1. お客様名 */}
                 <div>
-                  <Label htmlFor="customerName" className="text-lg font-medium">
-                    1️⃣ お客様のお名前 *
+                  <Label htmlFor="customerName" className="text-base font-medium">
+                    1️⃣ お客様名 *
                   </Label>
                   <Input
                     id="customerName"
                     value={customerInfo.customerName}
                     onChange={(e) => handleInputChange('customerName', e.target.value)}
-                    placeholder="例: 田中さん、佐藤様"
-                    className="mt-2 text-lg"
+                    placeholder="田中さん、佐藤様"
+                    className="mt-2 text-base"
                     required
                   />
                 </div>
 
                 {/* 2. 何があったか */}
                 <div>
-                  <Label htmlFor="whatHappened" className="text-lg font-medium">
+                  <Label htmlFor="whatHappened" className="text-base font-medium">
                     2️⃣ 何があったか *
                   </Label>
                   <div className="mt-2 space-y-2">
-                    <p className="text-sm text-gray-600">
-                      箇条書きで簡単に書いてください：
+                    <p className="text-xs text-gray-600">
+                      箇条書きで簡単に：
                     </p>
                     <Textarea
                       id="whatHappened"
@@ -141,72 +142,129 @@ export default function CreateMessagePage() {
                       onChange={(e) => handleInputChange('whatHappened', e.target.value)}
                       placeholder={`• 商品を購入してくれた
 • 紹介してくれた
-• サポートしてくれた
-• 会議に参加してくれた
-など`}
-                      rows={6}
-                      className="text-base"
+• サポートしてくれた`}
+                      rows={4}
+                      className="text-sm"
                       required
                     />
                   </div>
                 </div>
 
                 {/* 3. メッセージ設定 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="messageType" className="text-lg font-medium">
-                      3️⃣ メッセージの種類
+                    <Label htmlFor="messageType" className="text-base font-medium">
+                      3️⃣ 種類
                     </Label>
                     <select
                       id="messageType"
                       value={customerInfo.messageType}
                       onChange={(e) => handleInputChange('messageType', e.target.value)}
-                      className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                      className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
-                      <option value="thank_you">お礼メッセージ</option>
-                      <option value="follow_up">フォローアップ</option>
-                      <option value="appreciation">感謝のメッセージ</option>
-                      <option value="celebration">お祝いメッセージ</option>
+                      <option value="thank_you">お礼</option>
+                      <option value="follow_up">フォロー</option>
+                      <option value="appreciation">感謝</option>
+                      <option value="celebration">お祝い</option>
                     </select>
                   </div>
                   <div>
-                    <Label htmlFor="tone" className="text-lg font-medium">
+                    <Label htmlFor="tone" className="text-base font-medium">
                       4️⃣ トーン
                     </Label>
                     <select
                       id="tone"
                       value={customerInfo.tone}
                       onChange={(e) => handleInputChange('tone', e.target.value)}
-                      className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                      className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
-                      <option value="professional">ビジネスライク</option>
-                      <option value="friendly">親しみやすい</option>
+                      <option value="professional">ビジネス</option>
+                      <option value="friendly">親しみ</option>
                       <option value="formal">フォーマル</option>
                       <option value="casual">カジュアル</option>
                     </select>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* 生成ボタン */}
-            <div className="flex justify-center">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="px-8 py-4 text-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              >
-                {isLoading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                    <span>AIメッセージ生成中...</span>
+                {/* プレビューボタン */}
+                <div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="w-full h-10 text-sm"
+                  >
+                    {showPreview ? "👁️ プレビューを隠す" : "👁️ プレビュー表示"}
+                  </Button>
+                </div>
+
+                {/* 生成ボタン */}
+                <div>
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>生成中...</span>
+                      </div>
+                    ) : (
+                      "✨ AIメッセージ生成 ✨"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* プレビューエリア */}
+          {showPreview && (
+            <div className="space-y-4">
+              <MessagePreview
+                messageType={customerInfo.messageType}
+                tone={customerInfo.tone}
+                customerName={customerInfo.customerName || "田中太郎"}
+                whatHappened={customerInfo.whatHappened || "商品をご購入いただき"}
+              />
+              
+              {/* 他のテンプレートのプレビュー */}
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">🔄 他のテンプレート</CardTitle>
+                  <CardDescription className="text-sm">
+                    タップして切り替え
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Object.values(MESSAGE_TYPES).map((type) => (
+                      <div key={type} className="space-y-2">
+                        <h4 className="font-medium text-gray-900 text-sm">{MESSAGE_TYPE_LABELS[type]}</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {Object.values(TONES).map((tone) => (
+                            <Button
+                              key={tone}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                handleInputChange('messageType', type);
+                                handleInputChange('tone', tone);
+                              }}
+                              className="text-xs h-8"
+                            >
+                              {TONE_LABELS[tone]}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ) : (
-                  "✨ AIメッセージを生成 ✨"
-                )}
-              </Button>
+                </CardContent>
+              </Card>
             </div>
-          </form>
+          )}
         </div>
       </main>
     </div>
