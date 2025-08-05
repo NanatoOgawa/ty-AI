@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase/client";
+import { getStats } from "../../lib/database";
 import type { User } from "@supabase/supabase-js";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({ messageCount: 0, customerCount: 0, monthlyCount: 0 });
   const router = useRouter();
 
   useEffect(() => {
@@ -19,6 +21,14 @@ export default function DashboardPage() {
           return;
         }
         setUser(session.user);
+        
+        // 統計情報を取得
+        try {
+          const userStats = await getStats(session.user);
+          setStats(userStats);
+        } catch (error) {
+          console.error("Error loading stats:", error);
+        }
       } catch (error) {
         console.error("Auth error:", error);
         router.push('/login');
@@ -154,7 +164,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <button className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                  <button 
+                    onClick={() => router.push('/dashboard/history')}
+                    className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                  >
                     履歴を見る
                   </button>
                 </div>
@@ -204,7 +217,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">作成済みメッセージ</p>
-                    <p className="text-2xl font-semibold text-gray-900">0</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats.messageCount}</p>
                   </div>
                 </div>
               </div>
@@ -222,7 +235,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">登録お客様数</p>
-                    <p className="text-2xl font-semibold text-gray-900">0</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats.customerCount}</p>
                   </div>
                 </div>
               </div>
@@ -240,7 +253,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">今月の使用回数</p>
-                    <p className="text-2xl font-semibold text-gray-900">0</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats.monthlyCount}</p>
                   </div>
                 </div>
               </div>

@@ -7,6 +7,7 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Textarea } from "../../../components/ui/textarea";
+import { supabase } from "../../../lib/supabase/client";
 
 interface CustomerInfo {
   customerName: string;
@@ -32,11 +33,19 @@ export default function CreateMessagePage() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
+      // 現在のユーザー情報を取得
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('ユーザーが認証されていません');
+      }
+
+      // AIメッセージを生成
       const response = await fetch('/api/generate-message', {
         method: 'POST',
         headers: {
@@ -51,6 +60,31 @@ export default function CreateMessagePage() {
         throw new Error(data.error || 'メッセージの生成に失敗しました');
       }
 
+      // データベースに保存
+      try {
+        console.log('Saving to database...');
+        
+        // お客様情報を取得または作成
+        const { getOrCreateCustomer, saveMessageHistory } = await import('../../../lib/database');
+        const customer = await getOrCreateCustomer(user, customerInfo.customerName);
+        
+        // メッセージ履歴を保存
+        await saveMessageHistory(
+          user,
+          customer.id,
+          customerInfo.customerName,
+          customerInfo.whatHappened,
+          customerInfo.messageType,
+          customerInfo.tone,
+          data.message
+        );
+        
+        console.log('Successfully saved to database');
+      } catch (dbError) {
+        console.error('Database save error:', dbError);
+        // データベース保存に失敗してもメッセージ生成は成功させる
+      }
+
       // 結果ページにリダイレクト
       const messageParam = encodeURIComponent(data.message);
       const noteParam = data.note ? encodeURIComponent(data.note) : '';
@@ -59,6 +93,7 @@ export default function CreateMessagePage() {
     } catch (error) {
       console.error('Error generating message:', error);
       alert(error instanceof Error ? error.message : 'メッセージの生成中にエラーが発生しました');
+    } finally {
       setIsLoading(false);
     }
   };

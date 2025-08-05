@@ -149,6 +149,8 @@ ${prompt}`
       throw new Error('メッセージの生成に失敗しました');
     }
 
+
+
     return NextResponse.json({ message: generatedMessage });
 
   } catch (error) {
