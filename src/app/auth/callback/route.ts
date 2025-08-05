@@ -32,8 +32,14 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
       }
 
-      console.log("Auth callback: Redirecting to", `${origin}${next}`);
-      return NextResponse.redirect(`${origin}${next}`);
+      // セッションが正常に設定されたことを確認
+      if (data.session) {
+        console.log("Auth callback: Session established successfully, redirecting to", `${origin}${next}`);
+        return NextResponse.redirect(`${origin}${next}`);
+      } else {
+        console.error("Auth callback: No session established");
+        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("セッションの確立に失敗しました")}`);
+      }
     } catch (error) {
       console.error("Auth callback: Unexpected error:", error);
       return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("認証エラーが発生しました")}`);

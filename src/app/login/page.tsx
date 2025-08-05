@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "../../lib/supabase/client";
@@ -10,6 +11,9 @@ export default function LoginPage() {
   const [redirectUrl, setRedirectUrl] = useState("");
   const [error, setError] = useState("");
   const [debugInfo, setDebugInfo] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     console.log("Login page: Component mounted");
@@ -29,13 +33,41 @@ export default function LoginPage() {
     console.log("Login page: Setting redirect URL to:", url);
     setRedirectUrl(url);
 
+    // 初期認証状態をチェック
+    const checkAuthState = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Login page: Initial session check:", { hasSession: !!session });
+        
+        if (session && !isRedirecting) {
+          console.log("Login page: User already authenticated, redirecting to dashboard");
+          setIsRedirecting(true);
+          // 少し遅延を入れてリダイレクト
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 100);
+          return;
+        }
+      } catch (error) {
+        console.error("Login page: Error checking auth state:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthState();
+
     // 認証状態の監視
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Login page: Auth state change:", { event, session: !!session });
       
-      if (event === 'SIGNED_IN' && session) {
+      if (event === 'SIGNED_IN' && session && !isRedirecting) {
         console.log("Login page: User signed in, redirecting to dashboard");
-        window.location.href = '/dashboard';
+        setIsRedirecting(true);
+        // 少し遅延を入れてリダイレクト
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
       }
     });
 
@@ -54,7 +86,31 @@ export default function LoginPage() {
       console.error = originalError;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [router, isRedirecting]);
+
+  // リダイレクト中はローディング表示
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">ダッシュボードに移動中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ローディング中は何も表示しない
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">認証状態を確認中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

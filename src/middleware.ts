@@ -42,12 +42,13 @@ export async function middleware(request: NextRequest) {
     userEmail: user?.email || "null"
   });
 
-  // ログインページとAPIルートは認証不要
+  // ログインページとAPIルート、デバッグページは認証不要
   if (request.nextUrl.pathname.startsWith("/login") ||
       request.nextUrl.pathname.startsWith("/api") ||
       request.nextUrl.pathname.startsWith("/auth-status") ||
       request.nextUrl.pathname.startsWith("/auth/callback") ||
-      request.nextUrl.pathname.startsWith("/test-auth")) {
+      request.nextUrl.pathname.startsWith("/test-auth") ||
+      request.nextUrl.pathname.startsWith("/debug")) {
     console.log("Middleware: Allowing access to public route");
     return supabaseResponse;
   }
