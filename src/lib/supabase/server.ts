@@ -32,7 +32,7 @@ export async function createClient() {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-        flowType: 'implicit',
+        flowType: 'pkce',
         debug: process.env.NODE_ENV === 'development'
       },
       cookies: {

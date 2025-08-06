@@ -13,15 +13,10 @@ export async function GET(request: NextRequest) {
       const supabase = await createClient();
       
       // PKCEフロー用のexchangeCodeForSession
-      // Supabaseが自動的にcode_verifierを管理するため、codeのみを渡す
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error) {
         console.error("Auth callback error:", error);
-        // エラーの詳細をログに出力
-        if (error.message.includes('code verifier')) {
-          console.error("PKCE code verifier error - this might be a session issue");
-        }
         return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
       }
 
@@ -31,10 +26,39 @@ export async function GET(request: NextRequest) {
           expiresAt: data.session.expires_at
         });
         
-        // リダイレクトURLを動的に生成
-        const redirectUrl = new URL(next, origin);
-        console.log("Redirecting to:", redirectUrl.toString());
-        return NextResponse.redirect(redirectUrl.toString());
+        // リダイレクトURLを動的に生成（改善版）
+        let redirectUrl: string;
+        if (next.startsWith('http')) {
+          redirectUrl = next;
+        } else {
+          redirectUrl = new URL(next, origin).toString();
+        }
+        
+        console.log("Redirecting to:", redirectUrl);
+        
+        // レスポンスを作成し、セッションクッキーを確実に設定
+        const response = NextResponse.redirect(redirectUrl);
+        
+        // セッションクッキーを明示的に設定
+        if (data.session.access_token) {
+          response.cookies.set('sb-access-token', data.session.access_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7 // 7 days
+          });
+        }
+        
+        if (data.session.refresh_token) {
+          response.cookies.set('sb-refresh-token', data.session.refresh_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 30 // 30 days
+          });
+        }
+        
+        return response;
       } else {
         console.error("Auth callback: No session established");
         return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("セッションの確立に失敗しました")}`);

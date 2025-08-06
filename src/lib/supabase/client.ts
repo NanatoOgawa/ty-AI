@@ -26,8 +26,10 @@ export const supabase: SupabaseClient = createSupabaseClient(supabaseUrl, supaba
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'implicit',
-    debug: process.env.NODE_ENV === 'development'
+    flowType: 'pkce',
+    debug: process.env.NODE_ENV === 'development',
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'sb-auth-token'
   }
 });
 

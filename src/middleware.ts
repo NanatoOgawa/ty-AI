@@ -44,6 +44,28 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // セッションが存在する場合は、レスポンスにセッション情報を追加
+  if (session) {
+    // セッションクッキーを確実に設定
+    if (session.access_token) {
+      response.cookies.set('sb-access-token', session.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7 // 7 days
+      });
+    }
+    
+    if (session.refresh_token) {
+      response.cookies.set('sb-refresh-token', session.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30 // 30 days
+      });
+    }
+  }
+
   return response;
 }
 

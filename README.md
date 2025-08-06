@@ -40,7 +40,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 # Google Gemini API
 GEMINI_API_KEY=your_gemini_api_key
 
-# 本番環境用（オプション）
+# 本番環境用（重要）
 NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app
 ```
 
@@ -70,7 +70,34 @@ NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app
    http://localhost:3000/dashboard
    ```
 
-### 4. データベースのセットアップ
+### 4. 本番環境での認証問題解決
+
+本番環境でログインからダッシュボードへの遷移ができない場合、以下の設定を確認してください：
+
+#### 環境変数の確認
+```bash
+# Vercelの場合、以下の環境変数が設定されていることを確認
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app
+```
+
+#### Supabase設定の確認
+1. **「Authentication」** → **「URL Configuration」**
+   - Site URL: `https://your-app.vercel.app`
+   - Redirect URLs: `https://your-app.vercel.app/auth/callback`
+
+2. **「Authentication」** → **「Providers」** → **「Google」**
+   - Enabled: ✅
+   - Client ID: 正しく設定されている
+   - Client Secret: 正しく設定されている
+
+#### ブラウザの開発者ツールで確認
+1. ログインページでF12を押して開発者ツールを開く
+2. **Console**タブでエラーメッセージを確認
+3. **Network**タブでリクエストの成功/失敗を確認
+
+### 5. データベースのセットアップ
 
 SupabaseのSQLエディタで`supabase-schema-unified.sql`を実行してください：
 
@@ -80,7 +107,7 @@ SupabaseのSQLエディタで`supabase-schema-unified.sql`を実行してくだ�
 -- 既存のDBに上書きする形で実行してください
 ```
 
-### 5. 開発サーバーの起動
+### 6. 開発サーバーの起動
 
 ```bash
 npm run dev

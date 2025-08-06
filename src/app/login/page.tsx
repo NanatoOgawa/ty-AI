@@ -13,15 +13,21 @@ export default function LoginPage() {
 
   const redirectToDashboard = useCallback(() => {
     console.log("Redirecting to dashboard...");
-    // まずrouter.pushを試行
-    router.push('/dashboard');
-    // フォールバックとしてwindow.location.hrefを使用
-    setTimeout(() => {
-      if (window.location.pathname !== '/dashboard') {
-        console.log("Router push failed, using window.location.href");
-        window.location.href = '/dashboard';
-      }
-    }, 2000);
+    // より確実な遷移方法
+    try {
+      // まずrouter.pushを試行
+      router.push('/dashboard');
+      // フォールバックとしてwindow.location.hrefを使用
+      setTimeout(() => {
+        if (window.location.pathname !== '/dashboard') {
+          console.log("Router push failed, using window.location.href");
+          window.location.href = '/dashboard';
+        }
+      }, 1000);
+    } catch (error) {
+      console.error("Navigation error:", error);
+      window.location.href = '/dashboard';
+    }
   }, [router]);
 
   useEffect(() => {
@@ -30,6 +36,8 @@ export default function LoginPage() {
     const checkAuthState = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("Checking auth state:", { hasSession: !!session, user: session?.user?.email });
+        
         if (session && mounted) {
           console.log("Session found, redirecting to dashboard");
           redirectToDashboard();
@@ -72,7 +80,7 @@ export default function LoginPage() {
     };
   }, [redirectToDashboard]);
 
-  // リダイレクトURLを動的に生成
+  // リダイレクトURLを動的に生成（改善版）
   const getRedirectUrl = () => {
     if (typeof window !== 'undefined') {
       const currentOrigin = window.location.origin;
