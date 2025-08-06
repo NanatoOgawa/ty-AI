@@ -33,11 +33,20 @@ export default function LoginPage() {
       console.log("Auth state change:", event, session);
       if (event === 'SIGNED_IN' && session) {
         console.log("User signed in, redirecting to dashboard");
-        // 現在のドメインを使用してリダイレクト
-        const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
-        const dashboardUrl = `${currentOrigin}/dashboard`;
-        console.log("Redirecting to dashboard:", dashboardUrl);
-        router.push('/dashboard');
+        // 少し遅延を入れてリダイレクト
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
+      } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log("Token refreshed");
+      } else if (event === 'INITIAL_SESSION') {
+        console.log("Initial session:", session);
+        if (session) {
+          console.log("Initial session found, redirecting to dashboard");
+          router.push('/dashboard');
+        }
       }
     });
 
@@ -48,10 +57,9 @@ export default function LoginPage() {
 
   // リダイレクトURLを動的に生成
   const getRedirectUrl = () => {
-    // クライアントサイドでは現在のURLをベースにする
     if (typeof window !== 'undefined') {
       const currentOrigin = window.location.origin;
-      const redirectUrl = `${currentOrigin}/dashboard`;
+      const redirectUrl = `${currentOrigin}/auth/callback`;
       console.log("Redirect URL (client):", redirectUrl);
       return redirectUrl;
     }
@@ -59,19 +67,18 @@ export default function LoginPage() {
     // サーバーサイドでは環境変数を使用
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL;
     if (siteUrl) {
-      // VERCEL_URLは既にプロトコルを含んでいる場合がある
       let finalUrl = siteUrl;
       if (!siteUrl.startsWith('http')) {
         finalUrl = `https://${siteUrl}`;
       }
-      const redirectUrl = `${finalUrl}/dashboard`;
+      const redirectUrl = `${finalUrl}/auth/callback`;
       console.log("Redirect URL (server):", redirectUrl);
       return redirectUrl;
     }
     
     // フォールバック
-    console.log("Using fallback redirect URL: /dashboard");
-    return '/dashboard';
+    console.log("Using fallback redirect URL: /auth/callback");
+    return '/auth/callback';
   };
 
   if (isLoading) {
@@ -118,6 +125,20 @@ export default function LoginPage() {
               }}
               providers={["google"]}
               redirectTo={getRedirectUrl()}
+              showLinks={false}
+              view="sign_in"
+              localization={{
+                variables: {
+                  sign_in: {
+                    email_label: "メールアドレス",
+                    password_label: "パスワード",
+                    button_label: "ログイン",
+                    loading_button_label: "ログイン中...",
+                    social_provider_text: "{{provider}}でログイン",
+                    link_text: "既にアカウントをお持ちですか？ログイン"
+                  }
+                }
+              }}
             />
           </CardContent>
         </Card>

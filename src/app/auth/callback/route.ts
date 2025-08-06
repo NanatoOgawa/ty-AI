@@ -6,6 +6,8 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/dashboard";
 
+  console.log("Auth callback called with:", { code: !!code, next, origin });
+
   if (code) {
     try {
       const supabase = await createClient();
@@ -19,7 +21,11 @@ export async function GET(request: NextRequest) {
       }
 
       if (data.session) {
-        console.log("Auth callback: Session established successfully");
+        console.log("Auth callback: Session established successfully", {
+          user: data.session.user?.email,
+          expiresAt: data.session.expires_at
+        });
+        
         // リダイレクトURLを動的に生成
         const redirectUrl = new URL(next, origin);
         console.log("Redirecting to:", redirectUrl.toString());

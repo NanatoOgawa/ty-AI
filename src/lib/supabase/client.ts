@@ -27,10 +27,7 @@ export const supabase: SupabaseClient = createSupabaseClient(supabaseUrl, supaba
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
-    // 本番環境でのリダイレクトURLを設定
-    ...(typeof window !== 'undefined' && {
-      redirectTo: `${window.location.origin}/dashboard`
-    })
+    debug: process.env.NODE_ENV === 'development'
   }
 });
 

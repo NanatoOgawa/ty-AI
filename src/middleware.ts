@@ -40,6 +40,7 @@ export async function middleware(request: NextRequest) {
   if (!session) {
     // リダイレクトURLを動的に生成
     const loginUrl = new URL('/login', request.url);
+    console.log("No session found, redirecting to login:", loginUrl.toString());
     return NextResponse.redirect(loginUrl);
   }
 
