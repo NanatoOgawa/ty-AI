@@ -16,6 +16,7 @@ export default function LoginPage() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
+          console.log("Session found, redirecting to dashboard");
           router.push('/dashboard');
           return;
         }
@@ -32,6 +33,10 @@ export default function LoginPage() {
       console.log("Auth state change:", event, session);
       if (event === 'SIGNED_IN' && session) {
         console.log("User signed in, redirecting to dashboard");
+        // 現在のドメインを使用してリダイレクト
+        const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+        const dashboardUrl = `${currentOrigin}/dashboard`;
+        console.log("Redirecting to dashboard:", dashboardUrl);
         router.push('/dashboard');
       }
     });
@@ -43,20 +48,29 @@ export default function LoginPage() {
 
   // リダイレクトURLを動的に生成
   const getRedirectUrl = () => {
+    // クライアントサイドでは現在のURLをベースにする
     if (typeof window !== 'undefined') {
-      // クライアントサイドでは現在のURLをベースにする
-      const protocol = window.location.protocol;
-      const host = window.location.host;
-      const redirectUrl = `${protocol}//${host}/dashboard`;
-      console.log("Redirect URL:", redirectUrl);
+      const currentOrigin = window.location.origin;
+      const redirectUrl = `${currentOrigin}/dashboard`;
+      console.log("Redirect URL (client):", redirectUrl);
       return redirectUrl;
     }
-    // サーバーサイドでは環境変数またはデフォルト値を使用
+    
+    // サーバーサイドでは環境変数を使用
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL;
     if (siteUrl) {
-      const protocol = siteUrl.startsWith('https') ? 'https' : 'http';
-      return `${protocol}://${siteUrl}/dashboard`;
+      // VERCEL_URLは既にプロトコルを含んでいる場合がある
+      let finalUrl = siteUrl;
+      if (!siteUrl.startsWith('http')) {
+        finalUrl = `https://${siteUrl}`;
+      }
+      const redirectUrl = `${finalUrl}/dashboard`;
+      console.log("Redirect URL (server):", redirectUrl);
+      return redirectUrl;
     }
+    
+    // フォールバック
+    console.log("Using fallback redirect URL: /dashboard");
     return '/dashboard';
   };
 

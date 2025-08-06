@@ -39,9 +39,38 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Google Gemini API
 GEMINI_API_KEY=your_gemini_api_key
+
+# 本番環境用（オプション）
+NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app
 ```
 
-### 3. データベースのセットアップ
+### 3. 認証設定（重要）
+
+#### Google Console の設定
+1. [Google Cloud Console](https://console.cloud.google.com/) にアクセス
+2. **「APIとサービス」** → **「認証情報」** → **OAuth 2.0 クライアントID**
+3. **「承認済みのリダイレクトURI」** に以下を追加：
+   ```
+   http://localhost:3000/auth/callback
+   https://your-app-name.vercel.app/auth/callback
+   ```
+
+#### Supabase の設定
+1. [Supabase Dashboard](https://supabase.com/dashboard) にアクセス
+2. **「Authentication」** → **「URL Configuration」**
+3. **「Site URL」** を設定：
+   ```
+   https://your-app-name.vercel.app
+   ```
+4. **「Redirect URLs」** に以下を追加：
+   ```
+   https://your-app-name.vercel.app/auth/callback
+   https://your-app-name.vercel.app/dashboard
+   http://localhost:3000/auth/callback
+   http://localhost:3000/dashboard
+   ```
+
+### 4. データベースのセットアップ
 
 SupabaseのSQLエディタで`supabase-schema-unified.sql`を実行してください：
 
@@ -51,7 +80,7 @@ SupabaseのSQLエディタで`supabase-schema-unified.sql`を実行してくだ�
 -- 既存のDBに上書きする形で実行してください
 ```
 
-### 4. 開発サーバーの起動
+### 5. 開発サーバーの起動
 
 ```bash
 npm run dev
