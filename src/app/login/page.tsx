@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -10,14 +10,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const hasRedirected = useRef(false);
+
+  const redirectToDashboard = () => {
+    if (!hasRedirected.current) {
+      hasRedirected.current = true;
+      console.log("Redirecting to dashboard...");
+      // より確実な遷移方法
+      try {
+        // まずrouter.pushを試行
+        router.push('/dashboard');
+        // フォールバックとしてwindow.location.hrefを使用
+        setTimeout(() => {
+          if (window.location.pathname !== '/dashboard') {
+            console.log("Router push failed, using window.location.href");
+            window.location.href = '/dashboard';
+          }
+        }, 1000);
+      } catch (error) {
+        console.error("Navigation error:", error);
+        window.location.href = '/dashboard';
+      }
+    }
+  };
 
   useEffect(() => {
     const checkAuthState = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        if (session && !hasRedirected.current) {
           console.log("Session found, redirecting to dashboard");
-          router.push('/dashboard');
+          redirectToDashboard();
           return;
         }
       } catch (error) {
@@ -31,21 +54,19 @@ export default function LoginPage() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state change:", event, session);
-      if (event === 'SIGNED_IN' && session) {
+      if (event === 'SIGNED_IN' && session && !hasRedirected.current) {
         console.log("User signed in, redirecting to dashboard");
-        // 少し遅延を入れてリダイレクト
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 100);
+        redirectToDashboard();
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
+        hasRedirected.current = false;
       } else if (event === 'TOKEN_REFRESHED') {
         console.log("Token refreshed");
       } else if (event === 'INITIAL_SESSION') {
         console.log("Initial session:", session);
-        if (session) {
+        if (session && !hasRedirected.current) {
           console.log("Initial session found, redirecting to dashboard");
-          router.push('/dashboard');
+          redirectToDashboard();
         }
       }
     });
@@ -53,7 +74,7 @@ export default function LoginPage() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   // リダイレクトURLを動的に生成
   const getRedirectUrl = () => {
