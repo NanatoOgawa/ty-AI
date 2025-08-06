@@ -1,6 +1,6 @@
 import { createClient } from './supabase/client';
 import type { User } from '@supabase/supabase-js';
-import type { Customer, MessageHistory, UserStats } from '../types';
+import type { Customer, MessageHistory, UserStats, CustomerNote, UserTonePreference, MessageRating, ToneAnalysis } from '../types';
 
 
 
@@ -133,4 +133,235 @@ export async function getStats(user: User): Promise<UserStats> {
     customerCount: customerCount || 0,
     monthlyCount: monthlyCount || 0
   };
+}
+
+// お客さんのメモを保存
+export async function saveCustomerNote(
+  user: User,
+  customerId: string,
+  noteContent: string,
+  noteType: string = 'general'
+): Promise<CustomerNote> {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('customer_notes')
+    .insert({
+      user_id: user.id,
+      customer_id: customerId,
+      note_content: noteContent,
+      note_type: noteType
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error saving customer note:', error);
+    throw error;
+  }
+  
+  return data;
+}
+
+// お客さんのメモを取得
+export async function getCustomerNotes(
+  user: User,
+  customerId: string
+): Promise<CustomerNote[]> {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('customer_notes')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('customer_id', customerId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error getting customer notes:', error);
+    throw error;
+  }
+  
+  return data || [];
+}
+
+// お客さんの全メモを取得（メッセージ生成用）
+export async function getAllCustomerNotes(
+  user: User,
+  customerName: string
+): Promise<string> {
+  const supabase = createClient();
+  
+  // お客様を取得
+  const customer = await getOrCreateCustomer(user, customerName);
+  
+  // メモを取得
+  const notes = await getCustomerNotes(user, customer.id);
+  
+  if (notes.length === 0) {
+    return '';
+  }
+  
+  // メモをまとめて文字列として返す
+  return notes.map(note => 
+    `[${note.note_type}] ${note.note_content}`
+  ).join('\n');
+}
+
+// ユーザーのトーン設定を取得
+export async function getUserTonePreferences(user: User): Promise<UserTonePreference[]> {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('user_tone_preferences')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('tone_type');
+
+  if (error) {
+    console.error('Error getting user tone preferences:', error);
+    throw error;
+  }
+  
+  return data || [];
+}
+
+// ユーザーのトーン設定を保存・更新
+export async function saveUserTonePreference(
+  user: User,
+  toneType: string,
+  preferenceScore: number
+): Promise<UserTonePreference> {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('user_tone_preferences')
+    .upsert({
+      user_id: user.id,
+      tone_type: toneType,
+      preference_score: preferenceScore,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id,tone_type'
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error saving user tone preference:', error);
+    throw error;
+  }
+  
+  return data;
+}
+
+// メッセージ評価を保存
+export async function saveMessageRating(
+  user: User,
+  messageId: string,
+  rating: number,
+  toneType: string,
+  feedback?: string
+): Promise<MessageRating> {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('message_ratings')
+    .insert({
+      user_id: user.id,
+      message_id: messageId,
+      rating,
+      tone_type: toneType,
+      feedback
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error saving message rating:', error);
+    throw error;
+  }
+  
+  return data;
+}
+
+// ユーザーのトーン分析を取得
+export async function getUserToneAnalysis(user: User): Promise<ToneAnalysis[]> {
+  const supabase = createClient();
+  
+  // トーン設定を取得
+  const { data: preferences, error: prefError } = await supabase
+    .from('user_tone_preferences')
+    .select('*')
+    .eq('user_id', user.id);
+
+  if (prefError) {
+    console.error('Error getting tone preferences:', prefError);
+    throw prefError;
+  }
+
+  // メッセージ評価を取得
+  const { data: ratings, error: ratingError } = await supabase
+    .from('message_ratings')
+    .select('*')
+    .eq('user_id', user.id);
+
+  if (ratingError) {
+    console.error('Error getting message ratings:', ratingError);
+    throw ratingError;
+  }
+
+  // トーン分析を計算
+  const toneAnalysis: ToneAnalysis[] = [];
+  const allTones = ['professional', 'friendly', 'formal', 'casual'];
+
+  for (const tone of allTones) {
+    const preference = preferences?.find(p => p.tone_type === tone);
+    const toneRatings = ratings?.filter(r => r.tone_type === tone) || [];
+    
+    const averageRating = toneRatings.length > 0 
+      ? toneRatings.reduce((sum, r) => sum + r.rating, 0) / toneRatings.length 
+      : 0;
+
+    const successRate = averageRating / 5; // 5点満点を0-1のスコアに変換
+    
+    let recommendation = '推奨';
+    if (successRate < 0.4) {
+      recommendation = '改善が必要';
+    } else if (successRate < 0.7) {
+      recommendation = '要調整';
+    }
+
+    toneAnalysis.push({
+      tone_type: tone,
+      score: preference?.preference_score || 0.5,
+      usage_count: preference?.usage_count || 0,
+      success_rate: successRate,
+      recommendation
+    });
+  }
+
+  return toneAnalysis;
+}
+
+// トーン使用回数を更新
+export async function updateToneUsageCount(user: User, toneType: string): Promise<void> {
+  const supabase = createClient();
+  
+  const { error } = await supabase
+    .from('user_tone_preferences')
+    .upsert({
+      user_id: user.id,
+      tone_type: toneType,
+      usage_count: 1,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id,tone_type'
+    })
+    .select();
+
+  if (error) {
+    console.error('Error updating tone usage count:', error);
+    // エラーが発生しても処理を継続
+  }
 } 

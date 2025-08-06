@@ -39,3 +39,38 @@ CREATE POLICY "Users can delete their own message history" ON message_history
 CREATE INDEX idx_message_history_user_id ON message_history(user_id);
 CREATE INDEX idx_message_history_customer_id ON message_history(customer_id);
 CREATE INDEX idx_message_history_created_at ON message_history(created_at DESC); 
+
+-- お客さんのメモテーブル
+CREATE TABLE IF NOT EXISTS customer_notes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  note_content TEXT NOT NULL,
+  note_type VARCHAR(50) DEFAULT 'general', -- general, preference, history, etc.
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- インデックスの作成
+CREATE INDEX IF NOT EXISTS idx_customer_notes_user_id ON customer_notes(user_id);
+CREATE INDEX IF NOT EXISTS idx_customer_notes_customer_id ON customer_notes(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customer_notes_created_at ON customer_notes(created_at);
+
+-- RLSポリシーの設定
+ALTER TABLE customer_notes ENABLE ROW LEVEL SECURITY;
+
+-- ユーザーは自分のメモのみアクセス可能
+CREATE POLICY "Users can view their own customer notes" ON customer_notes
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own customer notes" ON customer_notes
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own customer notes" ON customer_notes
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own customer notes" ON customer_notes
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- 確認クエリ
+SELECT 'customer_notes table created successfully' as status; 

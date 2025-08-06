@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { GenerateMessageRequest, GenerateMessageResponse } from '../../../types';
 import { MESSAGE_TYPE_LABELS, TONE_LABELS } from '../../../types';
+import { createClient } from '../../../lib/supabase/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +19,40 @@ export async function POST(request: NextRequest) {
 
 
     // プロンプトの作成
+    // ユーザーのトーン設定を取得
+    let userTonePreferences = null;
+    try {
+      const supabase = createClient();
+      const authHeader = request.headers.get('authorization');
+      
+      if (authHeader) {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        
+        if (user && !authError) {
+          const { getUserTonePreferences } = await import('../../../lib/database');
+          userTonePreferences = await getUserTonePreferences(user);
+        }
+      }
+    } catch (error) {
+      console.error('Error getting user tone preferences:', error);
+      // エラーが発生しても処理を継続
+    }
+
+    // トーン設定を考慮したプロンプトを作成
+    let toneAdjustment = '';
+    if (userTonePreferences && userTonePreferences.length > 0) {
+      const currentTonePreference = userTonePreferences.find(p => p.tone_type === tone);
+      if (currentTonePreference) {
+        const preferenceLevel = currentTonePreference.preference_score;
+        if (preferenceLevel > 0.7) {
+          toneAdjustment = `\n【トーン調整】\n- このユーザーは${TONE_LABELS[tone]}なトーンを好む傾向があります（設定値: ${Math.round(preferenceLevel * 100)}%）\n- より自然で親しみやすい${TONE_LABELS[tone]}な表現を使用してください`;
+        } else if (preferenceLevel < 0.3) {
+          toneAdjustment = `\n【トーン調整】\n- このユーザーは${TONE_LABELS[tone]}なトーンをあまり好まない傾向があります（設定値: ${Math.round(preferenceLevel * 100)}%）\n- より控えめで自然な表現を使用してください`;
+        }
+      }
+    }
+
     const prompt = `
 以下の情報を基に、${MESSAGE_TYPE_LABELS[messageType]}を${TONE_LABELS[tone]}なトーンで作成してください。
 
@@ -33,7 +68,7 @@ ${whatHappened}
 - 日本語で作成
 - 自然で親しみやすい文章
 - 具体的で誠実な内容
-- 200-300文字程度
+- 200-300文字程度${toneAdjustment}
 
 【出力形式】
 メッセージのみを出力してください。説明文は不要です。
