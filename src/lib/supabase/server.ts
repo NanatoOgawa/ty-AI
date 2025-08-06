@@ -17,10 +17,13 @@ export async function createClient() {
     throw new Error('Missing environment variable NEXT_PUBLIC_SUPABASE_ANON_KEY');
   }
 
-  console.log('Supabase server client initialization:', {
-    url: supabaseUrl,
-    hasKey: !!supabaseAnonKey
-  });
+  // 開発環境でのみログを出力
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Supabase server client initialization:', {
+      url: supabaseUrl,
+      hasKey: !!supabaseAnonKey
+    });
+  }
 
   return createServerClient(
     supabaseUrl,

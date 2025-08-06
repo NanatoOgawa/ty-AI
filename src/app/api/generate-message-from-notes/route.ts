@@ -37,6 +37,16 @@ ${notes}
 - メモの内容を活かした個別化されたメッセージ
 - お客様の好みや過去のやり取りを考慮
 
+【メモ内容の自然な変換ルール】
+- 保存されたメモの内容を、自然で親しみやすい文章に変換してください
+- メモの内容をそのまま引用するのではなく、夜職の女性が実際に話すような自然な表現にしてください
+- 例：
+  - メモ：「お酒が好き」→ 変換：「お酒を楽しんでいただける」
+  - メモ：「家族の話をよくする」→ 変換：「ご家族の話をよく聞かせていただく」
+  - メモ：「誕生日が近い」→ 変換：「もうすぐお誕生日ですね」
+- メモの要点は保持しつつ、親しみやすく温かい表現に変換してください
+- 複数のメモがある場合は、それらを自然に組み合わせて一つの流れのある文章にしてください
+
 【要求】
 - ${MESSAGE_TYPE_LABELS[messageType]}を作成
 - トーン: ${TONE_LABELS[tone]}
@@ -45,10 +55,12 @@ ${notes}
 - お客様への配慮と感謝の気持ちを表現
 - メモの内容を活かした個別化されたメッセージ
 - お客様の好みや過去のやり取りを考慮
+- メモ内容を自然な表現に変換してからメッセージに組み込む
 
 【出力形式】
 メッセージのみを出力してください。説明文は不要です。
 絵文字は適度に使用し、過度にならないようにしてください。
+メモの内容をそのまま引用せず、自然な表現に変換してから使用してください。
 `;
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -78,15 +90,20 @@ ${prompt}`
           }
         ],
         generationConfig: {
-          temperature: 0.8, // より創造的な表現のため温度を上げる
+          temperature: 0.7, // 自然さと創造性のバランスを取る
           maxOutputTokens: 500,
+          topP: 0.9, // より自然な文章生成のため
         }
       }),
     });
 
     if (!apiResponse.ok) {
       const errorData = await apiResponse.json().catch(() => ({}));
-      console.error('Gemini API error:', errorData);
+      
+      // 開発環境でのみ詳細ログを出力
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Gemini API error:', errorData);
+      }
       
       if (apiResponse.status === 503 || errorData.error?.status === 'UNAVAILABLE') {
         return NextResponse.json(

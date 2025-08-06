@@ -13,10 +13,13 @@ if (!supabaseAnonKey) {
   throw new Error('Missing environment variable NEXT_PUBLIC_SUPABASE_ANON_KEY');
 }
 
-console.log('Supabase client initialization:', {
-  url: supabaseUrl,
-  hasKey: !!supabaseAnonKey
-});
+// 開発環境でのみログを出力
+if (process.env.NODE_ENV === 'development') {
+  console.log('Supabase client initialization:', {
+    url: supabaseUrl,
+    hasKey: !!supabaseAnonKey
+  });
+}
 
 export const supabase: SupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
   auth: {
