@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
 import { Checkbox } from "../../../../components/ui/checkbox";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { supabase } from "../../../../lib/supabase/client";
-import type { GenerateMessageFromNotesRequest, CustomerNote } from "../../../../types";
-import { MESSAGE_TYPES, TONES, MESSAGE_TYPE_LABELS, TONE_LABELS } from "../../../../types";
+import type { CustomerNote } from "../../../../types";
+import { MESSAGE_TYPES, TONES } from "../../../../types";
 
-export default function CreateFromNotesPage() {
+function CreateFromNotesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const customerName = searchParams.get('customer') || '';
@@ -19,16 +19,10 @@ export default function CreateFromNotesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [customerNotes, setCustomerNotes] = useState<CustomerNote[]>([]);
   const [selectedNotes, setSelectedNotes] = useState<Set<string>>(new Set());
-  const [messageType, setMessageType] = useState(MESSAGE_TYPES.THANK_YOU);
-  const [tone, setTone] = useState(TONES.PROFESSIONAL);
+  const [messageType, setMessageType] = useState<string>(MESSAGE_TYPES.THANK_YOU);
+  const [tone, setTone] = useState<string>(TONES.PROFESSIONAL);
 
-  useEffect(() => {
-    if (customerName) {
-      loadCustomerNotes();
-    }
-  }, [customerName]);
-
-  const loadCustomerNotes = async () => {
+  const loadCustomerNotes = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -58,7 +52,13 @@ export default function CreateFromNotesPage() {
       console.error('Error loading customer notes:', error);
       alert(error instanceof Error ? error.message : 'メモの読み込み中にエラーが発生しました');
     }
-  };
+  }, [customerName, selectedNotesParam]);
+
+  useEffect(() => {
+    if (customerName) {
+      loadCustomerNotes();
+    }
+  }, [customerName, loadCustomerNotes]);
 
   const handleNoteToggle = (noteId: string) => {
     const newSelectedNotes = new Set(selectedNotes);
@@ -98,10 +98,10 @@ export default function CreateFromNotesPage() {
         throw new Error('メモを1つ以上選択してください');
       }
 
-      // 選択されたメモをまとめて文字列に変換
-      const notesText = selectedNotesList.map(note => 
+      // メモの内容をまとめる
+      const notesContent = selectedNotesList.map(note => 
         `[${note.note_type}] ${note.note_content}`
-      ).join('\n');
+      ).join('\n\n');
 
       // AIメッセージを生成
       const response = await fetch('/api/generate-message-from-notes', {
@@ -111,9 +111,9 @@ export default function CreateFromNotesPage() {
         },
         body: JSON.stringify({
           customerName,
+          notesContent,
           messageType,
-          tone,
-          notes: notesText
+          tone
         }),
       });
 
@@ -121,24 +121,6 @@ export default function CreateFromNotesPage() {
 
       if (!response.ok) {
         throw new Error(data.error || 'メッセージの生成に失敗しました');
-      }
-
-      // データベースに保存
-      try {
-        const { getOrCreateCustomer, saveMessageHistory } = await import('../../../../lib/database');
-        const customer = await getOrCreateCustomer(user, customerName);
-        
-        await saveMessageHistory(
-          user,
-          customer.id,
-          customerName,
-          `メモから生成: ${selectedNotesList.length}件のメモを参照`,
-          messageType,
-          tone,
-          data.message
-        );
-      } catch (dbError) {
-        console.error('Database save error:', dbError);
       }
 
       // 結果ページにリダイレクト
@@ -154,126 +136,176 @@ export default function CreateFromNotesPage() {
     }
   };
 
+  if (!customerName) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">エラーが発生しました</h2>
+          <p className="text-gray-600">お客様名が指定されていません</p>
+          <Button 
+            onClick={() => router.push('/dashboard/customers')}
+            className="mt-4"
+          >
+            お客様管理に戻る
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader 
-        title="メモからメッセージ生成" 
+        title="メモからメッセージ作成" 
         showBackButton={true} 
-        backUrl="/dashboard/notes"
+        backUrl="/dashboard/customers"
       />
 
       <main className="max-w-md mx-auto py-4 px-4">
         <div className="space-y-4">
-          {/* お客様情報 */}
+          {/* ヘッダー */}
+          <Card className="border-0 shadow-lg bg-blue-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-blue-900">
+                📝 {customerName} のメモからメッセージ作成
+              </CardTitle>
+              <CardDescription className="text-blue-700">
+                選択したメモの内容を基にAIがメッセージを生成します
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* メモ選択 */}
           <Card className="border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl">👤 {customerName}</CardTitle>
-              <CardDescription className="text-sm">
-                保存されたメモからメッセージを生成
+            <CardHeader>
+              <CardTitle className="text-lg">📋 メモ選択</CardTitle>
+              <CardDescription>
+                メッセージ生成に使用するメモを選択してください
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* メモ選択 */}
-              <div>
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-900">
-                    メモを選択 ({selectedNotes.size}/{customerNotes.length}件選択中)
-                  </h4>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSelectAll}
-                    className="text-xs"
-                  >
-                    {selectedNotes.size === customerNotes.length ? 'すべて解除' : 'すべて選択'}
-                  </Button>
-                </div>
-                <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {customerNotes.map((note) => (
-                    <div key={note.id} className="bg-gray-50 p-3 rounded-lg border">
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          id={note.id}
-                          checked={selectedNotes.has(note.id)}
-                          onCheckedChange={() => handleNoteToggle(note.id)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                              {note.note_type}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(note.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-900">{note.note_content}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {customerNotes.length === 0 && (
-                  <div className="text-center py-4 text-gray-500">
-                    このお客様のメモはまだありません
-                  </div>
-                )}
+              {/* 全選択/解除ボタン */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">
+                  {selectedNotes.size} / {customerNotes.length} 件選択中
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="text-xs"
+                >
+                  {selectedNotes.size === customerNotes.length ? 'すべて解除' : 'すべて選択'}
+                </Button>
               </div>
 
-              {/* メッセージ設定 */}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-base font-medium">メッセージ種類</label>
-                    <select
-                      value={messageType}
-                      onChange={(e) => setMessageType(e.target.value)}
-                      className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    >
-                      <option value="thank_you">お礼</option>
-                      <option value="follow_up">フォロー</option>
-                      <option value="appreciation">感謝</option>
-                      <option value="celebration">お祝い</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-base font-medium">トーン</label>
-                    <select
-                      value={tone}
-                      onChange={(e) => setTone(e.target.value)}
-                      className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    >
-                      <option value="professional">ビジネス</option>
-                      <option value="friendly">親しみ</option>
-                      <option value="formal">フォーマル</option>
-                      <option value="casual">カジュアル</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* 生成ボタン */}
-                <div>
-                  <Button
-                    type="submit"
-                    disabled={isLoading || selectedNotes.size === 0}
-                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        <span>生成中...</span>
+              {/* メモ一覧 */}
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {customerNotes.map((note) => (
+                  <div key={note.id} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                    <Checkbox
+                      checked={selectedNotes.has(note.id)}
+                      onCheckedChange={() => handleNoteToggle(note.id)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                          {note.note_type}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(note.created_at).toLocaleDateString('ja-JP')}
+                        </span>
                       </div>
-                    ) : (
-                      `✨ 選択したメモからメッセージ生成 (${selectedNotes.size}件) ✨`
-                    )}
-                  </Button>
+                      <p className="text-sm text-gray-700 mt-1 leading-relaxed">
+                        {note.note_content}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* メッセージ設定 */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg">⚙️ メッセージ設定</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    メッセージ種類
+                  </label>
+                  <select
+                    value={messageType}
+                    onChange={(e) => setMessageType(e.target.value as string)}
+                    className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  >
+                    <option value="thank_you">お礼</option>
+                    <option value="follow_up">フォロー</option>
+                    <option value="appreciation">感謝</option>
+                    <option value="celebration">お祝い</option>
+                  </select>
                 </div>
-              </form>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    トーン
+                  </label>
+                  <select
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value as string)}
+                    className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  >
+                    <option value="professional">ビジネス</option>
+                    <option value="friendly">親しみ</option>
+                    <option value="formal">フォーマル</option>
+                    <option value="casual">カジュアル</option>
+                  </select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 生成ボタン */}
+          <Card className="border-0 shadow-lg">
+            <CardContent className="pt-6">
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading || selectedNotes.size === 0}
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
+              >
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>生成中...</span>
+                  </div>
+                ) : (
+                  "✨ AIメッセージ生成 ✨"
+                )}
+              </Button>
             </CardContent>
           </Card>
         </div>
       </main>
     </div>
+  );
+}
+
+export default function CreateFromNotesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    }>
+      <CreateFromNotesContent />
+    </Suspense>
   );
 } 

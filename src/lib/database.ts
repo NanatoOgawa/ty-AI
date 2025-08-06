@@ -185,13 +185,11 @@ export async function getCustomerNotes(
   return data || [];
 }
 
-// お客さんの全メモを取得（メッセージ生成用）
+// お客さんの全メモを取得（文字列として）
 export async function getAllCustomerNotes(
   user: User,
   customerName: string
 ): Promise<string> {
-  const supabase = createClient();
-  
   // お客様を取得
   const customer = await getOrCreateCustomer(user, customerName);
   

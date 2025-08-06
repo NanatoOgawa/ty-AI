@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
@@ -10,7 +10,7 @@ import { Textarea } from "../../../components/ui/textarea";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
-import type { CustomerNote, CreateNoteRequest } from "../../../types";
+import type { CustomerNote } from "../../../types";
 
 export default function NotesPage() {
   const router = useRouter();
@@ -22,11 +22,7 @@ export default function NotesPage() {
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedNotes, setSelectedNotes] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -37,7 +33,11 @@ export default function NotesPage() {
       console.error("Auth error:", error);
       router.push('/login');
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

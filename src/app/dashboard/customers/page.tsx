@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
@@ -41,12 +41,7 @@ export default function CustomersPage() {
     anniversary: ""
   });
 
-  useEffect(() => {
-    checkAuth();
-    loadCustomers();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -57,7 +52,12 @@ export default function CustomersPage() {
       console.error("Auth error:", error);
       router.push('/login');
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+    loadCustomers();
+  }, [checkAuth]);
 
   const loadCustomers = async () => {
     try {

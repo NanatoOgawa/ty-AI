@@ -1,5 +1,3 @@
-import type { User } from '@supabase/supabase-js';
-
 // お客様情報の型定義
 export interface Customer {
   id: string;

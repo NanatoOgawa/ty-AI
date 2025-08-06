@@ -1,22 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
 import { Textarea } from "../../../../components/ui/textarea";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { supabase } from "../../../../lib/supabase/client";
-import type { GenerateMessageResponse } from "../../../../types";
 
-export default function MessageResultPage() {
+interface MessageResult {
+  message: string;
+  note?: string;
+}
+
+function MessageResultContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [result, setResult] = useState<GenerateMessageResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<MessageResult | null>(null);
   const [rating, setRating] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState<string>("");
+  const [feedback, setFeedback] = useState('');
   const [isRatingSubmitted, setIsRatingSubmitted] = useState(false);
 
   useEffect(() => {
@@ -33,7 +37,7 @@ export default function MessageResultPage() {
         } else {
           setError('メッセージデータが見つかりません');
         }
-      } catch (error) {
+      } catch {
         setError('メッセージの読み込みに失敗しました');
       } finally {
         setIsLoading(false);
@@ -48,7 +52,7 @@ export default function MessageResultPage() {
       try {
         await navigator.clipboard.writeText(result.message);
         alert('メッセージをコピーしました！');
-      } catch (error) {
+      } catch {
         alert('コピーに失敗しました');
       }
     }
@@ -215,63 +219,46 @@ export default function MessageResultPage() {
                         rating && rating >= star ? 'text-yellow-400' : 'text-gray-300'
                       } hover:text-yellow-400 transition-colors`}
                     >
-                      ★
+                      ⭐
                     </button>
                   ))}
                 </div>
                 
-                {rating && (
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">
-                      評価: {rating} / 5
-                    </p>
-                  </div>
-                )}
-
                 {/* フィードバック */}
-                {rating && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      フィードバック（任意）
-                    </label>
-                    <Textarea
-                      value={feedback}
-                      onChange={(e) => setFeedback(e.target.value)}
-                      placeholder="このメッセージについての感想や改善点があれば教えてください"
-                      rows={3}
-                      className="w-full"
-                    />
-                  </div>
-                )}
-
-                {/* 評価送信ボタン */}
-                {rating && (
-                  <div className="text-center">
-                    <Button
-                      onClick={handleRatingSubmit}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      評価を送信
-                    </Button>
-                  </div>
-                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    フィードバック（任意）
+                  </label>
+                  <Textarea
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="このメッセージについてのご意見をお聞かせください"
+                    rows={3}
+                  />
+                </div>
+                
+                <Button
+                  onClick={handleRatingSubmit}
+                  disabled={!rating}
+                  className="w-full"
+                >
+                  評価を送信
+                </Button>
               </CardContent>
             </Card>
           )}
 
           {/* アクションボタン */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Button
               onClick={handleCopy}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
             >
               📋 メッセージをコピー
             </Button>
-            
             <Button
               onClick={handleNewMessage}
-              variant="outline"
-              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              className="flex-1 bg-green-600 hover:bg-green-700"
             >
               ✨ 新しいメッセージを作成
             </Button>
@@ -279,5 +266,20 @@ export default function MessageResultPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function MessageResultPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    }>
+      <MessageResultContent />
+    </Suspense>
   );
 } 

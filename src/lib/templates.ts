@@ -146,7 +146,9 @@ export function generatePreviewMessage(
   customerName: string = "田中太郎",
   whatHappened: string = "商品をご購入いただき"
 ): string {
-  const template = MESSAGE_TEMPLATES[messageType as keyof typeof MESSAGE_TEMPLATES]?.[tone as keyof typeof MESSAGE_TEMPLATES[typeof messageType]];
+  const messageTypeKey = messageType as keyof typeof MESSAGE_TEMPLATES;
+  const toneKey = tone as keyof typeof MESSAGE_TEMPLATES[typeof messageTypeKey];
+  const template = MESSAGE_TEMPLATES[messageTypeKey]?.[toneKey];
   
   if (!template) {
     return "テンプレートが見つかりません";

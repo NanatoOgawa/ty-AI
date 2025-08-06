@@ -1,19 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
-import type { ToneAnalysis, UserTonePreference } from "../../../types";
+import type { ToneAnalysis } from "../../../types";
 import { TONE_LABELS } from "../../../types";
 
 export default function ToneAnalysisPage() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [toneAnalysis, setToneAnalysis] = useState<ToneAnalysis[]>([]);
-  const [preferences, setPreferences] = useState<UserTonePreference[]>([]);
 
   useEffect(() => {
     loadToneAnalysis();
@@ -27,14 +24,10 @@ export default function ToneAnalysisPage() {
         throw new Error('ユーザーが認証されていません');
       }
 
-      const { getUserToneAnalysis, getUserTonePreferences } = await import('../../../lib/database');
-      const [analysis, userPreferences] = await Promise.all([
-        getUserToneAnalysis(user),
-        getUserTonePreferences(user)
-      ]);
+      const { getUserToneAnalysis } = await import('../../../lib/database');
+      const analysis = await getUserToneAnalysis(user);
       
       setToneAnalysis(analysis);
-      setPreferences(userPreferences);
       
     } catch (error) {
       console.error('Error loading tone analysis:', error);

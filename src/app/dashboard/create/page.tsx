@@ -1,36 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
 import { Textarea } from "../../../components/ui/textarea";
+import { Label } from "../../../components/ui/label";
 import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
 import type { GenerateMessageRequest, Customer } from "../../../types";
 import { MESSAGE_TYPES, TONES } from "../../../types";
 
-export default function CreateMessagePage() {
+function CreateMessageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [customerInfo, setCustomerInfo] = useState<GenerateMessageRequest>({
-    customerName: searchParams.get('customer') || "",
-    whatHappened: "",
+    customerName: searchParams.get('customer') || '',
+    whatHappened: '',
     messageType: MESSAGE_TYPES.THANK_YOU,
     tone: TONES.PROFESSIONAL
   });
   const [customerData, setCustomerData] = useState<Customer | null>(null);
 
-  useEffect(() => {
-    if (customerInfo.customerName) {
-      loadCustomerData();
-    }
-  }, [customerInfo.customerName]);
-
-  const loadCustomerData = async () => {
+  const loadCustomerData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -55,7 +49,13 @@ export default function CreateMessagePage() {
       console.error('Error loading customer data:', error);
       // エラーが発生しても処理を続行
     }
-  };
+  }, [customerInfo.customerName]);
+
+  useEffect(() => {
+    if (customerInfo.customerName) {
+      loadCustomerData();
+    }
+  }, [customerInfo.customerName, loadCustomerData]);
 
   const handleInputChange = (field: keyof GenerateMessageRequest, value: string) => {
     setCustomerInfo(prev => ({
@@ -156,48 +156,53 @@ export default function CreateMessagePage() {
             <Card className="border-0 shadow-lg bg-blue-50">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg text-blue-900">
-                  👤 {customerData.name} の基本情報
+                  📋 お客様情報
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {customerData.company && (
-                  <div className="text-sm">
-                    <span className="font-medium text-blue-800">🏢</span> {customerData.company}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="font-medium text-blue-800">会社:</span>
+                    <span className="ml-2 text-blue-700">{customerData.company || '未設定'}</span>
                   </div>
-                )}
-                {customerData.relationship && (
-                  <div className="text-sm">
-                    <span className="font-medium text-blue-800">👥</span> {customerData.relationship}
+                  <div>
+                    <span className="font-medium text-blue-800">関係性:</span>
+                    <span className="ml-2 text-blue-700">{customerData.relationship || '未設定'}</span>
                   </div>
-                )}
+                  <div>
+                    <span className="font-medium text-blue-800">電話:</span>
+                    <span className="ml-2 text-blue-700">{customerData.phone || '未設定'}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-blue-800">誕生日:</span>
+                    <span className="ml-2 text-blue-700">{customerData.birthday || '未設定'}</span>
+                  </div>
+                </div>
                 {customerData.preferences && (
-                  <div className="text-sm">
-                    <span className="font-medium text-blue-800">🎯</span> {customerData.preferences.substring(0, 100)}
-                    {customerData.preferences.length > 100 && '...'}
+                  <div>
+                    <span className="font-medium text-blue-800">好み:</span>
+                    <span className="ml-2 text-blue-700">{customerData.preferences}</span>
                   </div>
                 )}
                 {customerData.important_notes && (
-                  <div className="text-sm">
-                    <span className="font-medium text-blue-800">⚠️</span> {customerData.important_notes.substring(0, 100)}
-                    {customerData.important_notes.length > 100 && '...'}
+                  <div>
+                    <span className="font-medium text-blue-800">重要メモ:</span>
+                    <span className="ml-2 text-blue-700">{customerData.important_notes}</span>
                   </div>
                 )}
-                <div className="text-xs text-blue-600 mt-2">
-                  💡 この情報は自動的にメッセージ生成に反映されます
-                </div>
               </CardContent>
             </Card>
           )}
 
-          {/* 入力フォーム */}
+          {/* メッセージ作成フォーム */}
           <Card className="border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl">💬 メッセージ作成</CardTitle>
-              <CardDescription className="text-sm">
-                隙間時間でサクッと作成
+            <CardHeader>
+              <CardTitle className="text-xl">✨ AIメッセージ作成</CardTitle>
+              <CardDescription>
+                お客様との出来事を入力して、AIが最適なメッセージを生成します
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* 1. お客様名 */}
                 <div>
@@ -301,5 +306,20 @@ export default function CreateMessagePage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function CreateMessagePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    }>
+      <CreateMessageContent />
+    </Suspense>
   );
 } 
