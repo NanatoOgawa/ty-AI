@@ -53,7 +53,8 @@ export default function MessageHistoryPage() {
     try {
       await navigator.clipboard.writeText(message);
       alert('メッセージをコピーしました！');
-    } catch {
+    } catch (error) {
+      console.error('Copy error:', error);
       alert('コピーに失敗しました');
     }
   };

@@ -20,7 +20,10 @@ export async function GET(request: NextRequest) {
 
       if (data.session) {
         console.log("Auth callback: Session established successfully");
-        return NextResponse.redirect(`${origin}${next}`);
+        // リダイレクトURLを動的に生成
+        const redirectUrl = new URL(next, origin);
+        console.log("Redirecting to:", redirectUrl.toString());
+        return NextResponse.redirect(redirectUrl.toString());
       } else {
         console.error("Auth callback: No session established");
         return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("セッションの確立に失敗しました")}`);

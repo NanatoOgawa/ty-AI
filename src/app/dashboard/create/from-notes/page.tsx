@@ -126,7 +126,9 @@ function CreateFromNotesContent() {
       // 結果ページにリダイレクト
       const messageParam = encodeURIComponent(data.message);
       const noteParam = data.note ? encodeURIComponent(data.note) : '';
-      router.push(`/dashboard/create/result?message=${messageParam}&note=${noteParam}`);
+      const resultUrl = `/dashboard/create/result?message=${messageParam}&note=${noteParam}`;
+      console.log('Navigating to result page:', resultUrl);
+      router.push(resultUrl);
       
     } catch (error) {
       console.error('Error generating message:', error);

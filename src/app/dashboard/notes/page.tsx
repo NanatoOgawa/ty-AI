@@ -125,10 +125,17 @@ export default function NotesPage() {
       return;
     }
     
-    // 選択されたメモのIDをカンマ区切りでエンコード
-    const selectedNotesParam = Array.from(selectedNotes).join(',');
-    const messageParam = encodeURIComponent(selectedCustomer);
-    router.push(`/dashboard/create/from-notes?customer=${messageParam}&notes=${selectedNotesParam}`);
+    try {
+      // 選択されたメモのIDをカンマ区切りでエンコード
+      const selectedNotesParam = Array.from(selectedNotes).join(',');
+      const customerParam = encodeURIComponent(selectedCustomer);
+      const url = `/dashboard/create/from-notes?customer=${customerParam}&notes=${selectedNotesParam}`;
+      console.log('Navigating to:', url);
+      router.push(url);
+    } catch (error) {
+      console.error('Error navigating to create from notes:', error);
+      alert('画面遷移中にエラーが発生しました');
+    }
   };
 
   return (

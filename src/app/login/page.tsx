@@ -29,7 +29,9 @@ export default function LoginPage() {
     checkAuthState();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state change:", event, session);
       if (event === 'SIGNED_IN' && session) {
+        console.log("User signed in, redirecting to dashboard");
         router.push('/dashboard');
       }
     });
@@ -38,6 +40,25 @@ export default function LoginPage() {
       subscription.unsubscribe();
     };
   }, [router]);
+
+  // リダイレクトURLを動的に生成
+  const getRedirectUrl = () => {
+    if (typeof window !== 'undefined') {
+      // クライアントサイドでは現在のURLをベースにする
+      const protocol = window.location.protocol;
+      const host = window.location.host;
+      const redirectUrl = `${protocol}//${host}/dashboard`;
+      console.log("Redirect URL:", redirectUrl);
+      return redirectUrl;
+    }
+    // サーバーサイドでは環境変数またはデフォルト値を使用
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL;
+    if (siteUrl) {
+      const protocol = siteUrl.startsWith('https') ? 'https' : 'http';
+      return `${protocol}://${siteUrl}/dashboard`;
+    }
+    return '/dashboard';
+  };
 
   if (isLoading) {
     return (
@@ -82,7 +103,7 @@ export default function LoginPage() {
                 },
               }}
               providers={["google"]}
-              redirectTo={`${window.location.origin}/dashboard`}
+              redirectTo={getRedirectUrl()}
             />
           </CardContent>
         </Card>

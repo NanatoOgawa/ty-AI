@@ -11,21 +11,29 @@ export async function getOrCreateCustomer(
 ): Promise<Customer> {
   const supabase = createClient();
   
+  if (!user?.id) {
+    throw new Error('ユーザーIDが無効です');
+  }
 
+  if (!customerName || customerName.trim() === '') {
+    throw new Error('お客様名が無効です');
+  }
   
   // 既存のお客様を検索
   const { data: existingCustomer, error: searchError } = await supabase
     .from('customers')
     .select('*')
     .eq('user_id', user.id)
-    .eq('name', customerName)
+    .eq('name', customerName.trim())
     .single();
 
   if (searchError && searchError.code !== 'PGRST116') {
     console.error('Error searching for customer:', searchError);
+    throw new Error(`お客様の検索中にエラーが発生しました: ${searchError.message}`);
   }
 
   if (existingCustomer) {
+    console.log('Existing customer found:', existingCustomer.name);
     return existingCustomer;
   }
   
@@ -34,16 +42,17 @@ export async function getOrCreateCustomer(
     .from('customers')
     .insert({
       user_id: user.id,
-      name: customerName
+      name: customerName.trim()
     })
     .select()
     .single();
 
   if (error) {
     console.error('Error creating customer:', error);
-    throw error;
+    throw new Error(`お客様の作成中にエラーが発生しました: ${error.message}`);
   }
 
+  console.log('New customer created:', newCustomer.name);
   return newCustomer;
 }
 
@@ -59,26 +68,36 @@ export async function saveMessageHistory(
 ): Promise<void> {
   const supabase = createClient();
   
+  if (!user?.id) {
+    throw new Error('ユーザーIDが無効です');
+  }
 
+  if (!customerName || customerName.trim() === '') {
+    throw new Error('お客様名が無効です');
+  }
+
+  if (!generatedMessage || generatedMessage.trim() === '') {
+    throw new Error('生成されたメッセージが無効です');
+  }
   
   const { error } = await supabase
     .from('message_history')
     .insert({
       user_id: user.id,
       customer_id: customerId,
-      customer_name: customerName,
-      what_happened: whatHappened,
-      message_type: messageType,
-      tone: tone,
-      generated_message: generatedMessage
+      customer_name: customerName.trim(),
+      what_happened: whatHappened || '',
+      message_type: messageType || 'thank_you',
+      tone: tone || 'professional',
+      generated_message: generatedMessage.trim()
     });
 
   if (error) {
     console.error('Error saving message history:', error);
-    throw error;
+    throw new Error(`メッセージ履歴の保存中にエラーが発生しました: ${error.message}`);
   }
-  
 
+  console.log('Message history saved successfully');
 }
 
 // メッセージ履歴の取得

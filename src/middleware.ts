@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
 
   // パブリックルート（認証不要）
-  const publicRoutes = ['/login', '/auth/callback', '/auth/signout', '/dashboard', '/api'];
+  const publicRoutes = ['/login', '/auth/callback', '/auth/signout', '/api'];
   const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route));
 
   if (isPublicRoute) {
@@ -38,7 +38,9 @@ export async function middleware(request: NextRequest) {
 
   // 認証が必要なルート
   if (!session) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    // リダイレクトURLを動的に生成
+    const loginUrl = new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   return response;

@@ -73,8 +73,13 @@ export default function CustomersPage() {
         .eq('user_id', user.id)
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw new Error(`お客様情報の読み込み中にエラーが発生しました: ${error.message}`);
+      }
+      
       setCustomers(data || []);
+      console.log(`Loaded ${data?.length || 0} customers`);
       
     } catch (error) {
       console.error('Error loading customers:', error);
@@ -93,17 +98,21 @@ export default function CustomersPage() {
         throw new Error('ユーザーが認証されていません');
       }
 
+      if (!formData.name || formData.name.trim() === '') {
+        throw new Error('お客様名は必須です');
+      }
+
       const customerData = {
         user_id: user.id,
-        name: formData.name,
-        company: formData.company || null,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        relationship: formData.relationship || null,
-        preferences: formData.preferences || null,
-        important_notes: formData.important_notes || null,
-        birthday: formData.birthday || null,
-        anniversary: formData.anniversary || null
+        name: formData.name.trim(),
+        company: formData.company?.trim() || null,
+        email: formData.email?.trim() || null,
+        phone: formData.phone?.trim() || null,
+        relationship: formData.relationship?.trim() || null,
+        preferences: formData.preferences?.trim() || null,
+        important_notes: formData.important_notes?.trim() || null,
+        birthday: formData.birthday?.trim() || null,
+        anniversary: formData.anniversary?.trim() || null
       };
 
       if (editingCustomer) {
@@ -113,7 +122,10 @@ export default function CustomersPage() {
           .update(customerData)
           .eq('id', editingCustomer.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error);
+          throw new Error(`お客様情報の更新中にエラーが発生しました: ${error.message}`);
+        }
         alert('お客様情報を更新しました！');
       } else {
         // 新規作成
@@ -121,7 +133,10 @@ export default function CustomersPage() {
           .from('customers')
           .insert([customerData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert error:', error);
+          throw new Error(`お客様情報の登録中にエラーが発生しました: ${error.message}`);
+        }
         alert('お客様情報を登録しました！');
       }
 
@@ -190,8 +205,15 @@ export default function CustomersPage() {
   };
 
   const handleCreateMessage = (customer: Customer) => {
-    const customerParam = encodeURIComponent(customer.name);
-    router.push(`/dashboard/create?customer=${customerParam}`);
+    try {
+      const customerParam = encodeURIComponent(customer.name);
+      const url = `/dashboard/create?customer=${customerParam}`;
+      console.log('Navigating to:', url);
+      router.push(url);
+    } catch (error) {
+      console.error('Error navigating to create message:', error);
+      alert('画面遷移中にエラーが発生しました');
+    }
   };
 
   return (

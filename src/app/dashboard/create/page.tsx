@@ -123,9 +123,13 @@ function CreateMessageContent() {
           customerInfo.tone,
           data.message
         );
+        
+        console.log('Message and history saved successfully');
       } catch (dbError) {
         console.error('Database save error:', dbError);
         // データベース保存に失敗してもメッセージ生成は成功させる
+        // ユーザーには警告を表示
+        alert('メッセージは生成されましたが、履歴の保存に失敗しました。');
       }
 
       // 結果ページにリダイレクト
