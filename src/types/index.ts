@@ -3,8 +3,18 @@ import type { User } from '@supabase/supabase-js';
 // お客様情報の型定義
 export interface Customer {
   id: string;
+  user_id: string;
   name: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  relationship?: string;
+  preferences?: string;
+  important_notes?: string;
+  birthday?: string;
+  anniversary?: string;
   created_at: string;
+  updated_at: string;
 }
 
 // メッセージ履歴の型定義

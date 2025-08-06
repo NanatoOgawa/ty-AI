@@ -7,6 +7,7 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Textarea } from "../../../components/ui/textarea";
+import { Checkbox } from "../../../components/ui/checkbox";
 import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
 import type { CustomerNote, CreateNoteRequest } from "../../../types";
@@ -19,6 +20,7 @@ export default function NotesPage() {
   const [noteType, setNoteType] = useState("general");
   const [notes, setNotes] = useState<CustomerNote[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedNotes, setSelectedNotes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     checkAuth();
@@ -83,10 +85,32 @@ export default function NotesPage() {
       const customerNotes = await getCustomerNotes(user, customer.id);
       
       setNotes(customerNotes);
+      // 初期状態ではすべてのメモを選択
+      setSelectedNotes(new Set(customerNotes.map(note => note.id)));
       
     } catch (error) {
       console.error('Error loading notes:', error);
       alert(error instanceof Error ? error.message : 'メモの読み込み中にエラーが発生しました');
+    }
+  };
+
+  const handleNoteToggle = (noteId: string) => {
+    const newSelectedNotes = new Set(selectedNotes);
+    if (newSelectedNotes.has(noteId)) {
+      newSelectedNotes.delete(noteId);
+    } else {
+      newSelectedNotes.add(noteId);
+    }
+    setSelectedNotes(newSelectedNotes);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedNotes.size === notes.length) {
+      // すべて選択されている場合はすべて解除
+      setSelectedNotes(new Set());
+    } else {
+      // すべて選択
+      setSelectedNotes(new Set(notes.map(note => note.id)));
     }
   };
 
@@ -96,8 +120,15 @@ export default function NotesPage() {
       return;
     }
     
+    if (selectedNotes.size === 0) {
+      alert('メモを1つ以上選択してください');
+      return;
+    }
+    
+    // 選択されたメモのIDをカンマ区切りでエンコード
+    const selectedNotesParam = Array.from(selectedNotes).join(',');
     const messageParam = encodeURIComponent(selectedCustomer);
-    router.push(`/dashboard/create/from-notes?customer=${messageParam}`);
+    router.push(`/dashboard/create/from-notes?customer=${messageParam}&notes=${selectedNotesParam}`);
   };
 
   return (
@@ -226,18 +257,39 @@ export default function NotesPage() {
               {/* メモ一覧 */}
               {notes.length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900">保存されたメモ:</h4>
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-gray-900">保存されたメモ:</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSelectAll}
+                      className="text-xs"
+                    >
+                      {selectedNotes.size === notes.length ? 'すべて解除' : 'すべて選択'}
+                    </Button>
+                  </div>
                   {notes.map((note) => (
                     <div key={note.id} className="bg-gray-50 p-3 rounded-lg border">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          {note.note_type}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(note.created_at).toLocaleDateString()}
-                        </span>
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          id={note.id}
+                          checked={selectedNotes.has(note.id)}
+                          onCheckedChange={() => handleNoteToggle(note.id)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              {note.note_type}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(note.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-900">{note.note_content}</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-900">{note.note_content}</p>
                     </div>
                   ))}
                   
@@ -245,9 +297,10 @@ export default function NotesPage() {
                   <Button
                     type="button"
                     onClick={handleGenerateMessage}
-                    className="w-full h-10 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium"
+                    disabled={selectedNotes.size === 0}
+                    className="w-full h-10 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    ✨ メモからメッセージ生成
+                    ✨ 選択したメモからメッセージ生成 ({selectedNotes.size}件選択)
                   </Button>
                 </div>
               )}

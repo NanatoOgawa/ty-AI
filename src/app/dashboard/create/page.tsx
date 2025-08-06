@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -9,18 +9,53 @@ import { Label } from "../../../components/ui/label";
 import { Textarea } from "../../../components/ui/textarea";
 import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
-import type { GenerateMessageRequest } from "../../../types";
+import type { GenerateMessageRequest, Customer } from "../../../types";
 import { MESSAGE_TYPES, TONES } from "../../../types";
 
 export default function CreateMessagePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [customerInfo, setCustomerInfo] = useState<GenerateMessageRequest>({
-    customerName: "",
+    customerName: searchParams.get('customer') || "",
     whatHappened: "",
     messageType: MESSAGE_TYPES.THANK_YOU,
     tone: TONES.PROFESSIONAL
   });
+  const [customerData, setCustomerData] = useState<Customer | null>(null);
+
+  useEffect(() => {
+    if (customerInfo.customerName) {
+      loadCustomerData();
+    }
+  }, [customerInfo.customerName]);
+
+  const loadCustomerData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('ユーザーが認証されていません');
+      }
+
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('name', customerInfo.customerName)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116は「データが見つからない」エラー
+        throw error;
+      }
+
+      setCustomerData(data || null);
+      
+    } catch (error) {
+      console.error('Error loading customer data:', error);
+      // エラーが発生しても処理を続行
+    }
+  };
 
   const handleInputChange = (field: keyof GenerateMessageRequest, value: string) => {
     setCustomerInfo(prev => ({
@@ -41,13 +76,29 @@ export default function CreateMessagePage() {
         throw new Error('ユーザーが認証されていません');
       }
 
+      // お客様の基本情報を含めたリクエストを作成
+      const requestData = {
+        ...customerInfo,
+        customerData: customerData ? {
+          name: customerData.name,
+          company: customerData.company,
+          email: customerData.email,
+          phone: customerData.phone,
+          relationship: customerData.relationship,
+          preferences: customerData.preferences,
+          important_notes: customerData.important_notes,
+          birthday: customerData.birthday,
+          anniversary: customerData.anniversary
+        } : null
+      };
+
       // AIメッセージを生成
       const response = await fetch('/api/generate-message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(customerInfo),
+        body: JSON.stringify(requestData),
       });
 
       const data = await response.json();
@@ -100,6 +151,44 @@ export default function CreateMessagePage() {
 
       <main className="max-w-md mx-auto py-4 px-4">
         <div className="space-y-4">
+          {/* お客様情報表示 */}
+          {customerData && (
+            <Card className="border-0 shadow-lg bg-blue-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg text-blue-900">
+                  👤 {customerData.name} の基本情報
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {customerData.company && (
+                  <div className="text-sm">
+                    <span className="font-medium text-blue-800">🏢</span> {customerData.company}
+                  </div>
+                )}
+                {customerData.relationship && (
+                  <div className="text-sm">
+                    <span className="font-medium text-blue-800">👥</span> {customerData.relationship}
+                  </div>
+                )}
+                {customerData.preferences && (
+                  <div className="text-sm">
+                    <span className="font-medium text-blue-800">🎯</span> {customerData.preferences.substring(0, 100)}
+                    {customerData.preferences.length > 100 && '...'}
+                  </div>
+                )}
+                {customerData.important_notes && (
+                  <div className="text-sm">
+                    <span className="font-medium text-blue-800">⚠️</span> {customerData.important_notes.substring(0, 100)}
+                    {customerData.important_notes.length > 100 && '...'}
+                  </div>
+                )}
+                <div className="text-xs text-blue-600 mt-2">
+                  💡 この情報は自動的にメッセージ生成に反映されます
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* 入力フォーム */}
           <Card className="border-0 shadow-lg">
             <CardHeader className="pb-4">
@@ -123,6 +212,11 @@ export default function CreateMessagePage() {
                     className="mt-2 text-base"
                     required
                   />
+                  {!customerData && customerInfo.customerName && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      💡 このお客様の基本情報を登録すると、より良いメッセージが生成されます
+                    </div>
+                  )}
                 </div>
 
                 {/* 2. 何があったか */}

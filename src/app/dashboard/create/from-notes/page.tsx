@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
+import { Checkbox } from "../../../../components/ui/checkbox";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { supabase } from "../../../../lib/supabase/client";
 import type { GenerateMessageFromNotesRequest, CustomerNote } from "../../../../types";
@@ -13,9 +14,11 @@ export default function CreateFromNotesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const customerName = searchParams.get('customer') || '';
+  const selectedNotesParam = searchParams.get('notes') || '';
   
   const [isLoading, setIsLoading] = useState(false);
   const [customerNotes, setCustomerNotes] = useState<CustomerNote[]>([]);
+  const [selectedNotes, setSelectedNotes] = useState<Set<string>>(new Set());
   const [messageType, setMessageType] = useState(MESSAGE_TYPES.THANK_YOU);
   const [tone, setTone] = useState(TONES.PROFESSIONAL);
 
@@ -39,9 +42,41 @@ export default function CreateFromNotesPage() {
       
       setCustomerNotes(notes);
       
+      // URLパラメータから選択されたメモのIDを取得
+      if (selectedNotesParam) {
+        const selectedNoteIds = selectedNotesParam.split(',').filter(id => id.trim() !== '');
+        const validNoteIds = new Set(selectedNoteIds.filter(id => 
+          notes.some(note => note.id === id)
+        ));
+        setSelectedNotes(validNoteIds);
+      } else {
+        // パラメータがない場合はすべてのメモを選択
+        setSelectedNotes(new Set(notes.map(note => note.id)));
+      }
+      
     } catch (error) {
       console.error('Error loading customer notes:', error);
       alert(error instanceof Error ? error.message : 'メモの読み込み中にエラーが発生しました');
+    }
+  };
+
+  const handleNoteToggle = (noteId: string) => {
+    const newSelectedNotes = new Set(selectedNotes);
+    if (newSelectedNotes.has(noteId)) {
+      newSelectedNotes.delete(noteId);
+    } else {
+      newSelectedNotes.add(noteId);
+    }
+    setSelectedNotes(newSelectedNotes);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedNotes.size === customerNotes.length) {
+      // すべて選択されている場合はすべて解除
+      setSelectedNotes(new Set());
+    } else {
+      // すべて選択
+      setSelectedNotes(new Set(customerNotes.map(note => note.id)));
     }
   };
 
@@ -56,8 +91,15 @@ export default function CreateFromNotesPage() {
         throw new Error('ユーザーが認証されていません');
       }
 
-      // メモをまとめて文字列に変換
-      const notesText = customerNotes.map(note => 
+      // 選択されたメモのみを取得
+      const selectedNotesList = customerNotes.filter(note => selectedNotes.has(note.id));
+      
+      if (selectedNotesList.length === 0) {
+        throw new Error('メモを1つ以上選択してください');
+      }
+
+      // 選択されたメモをまとめて文字列に変換
+      const notesText = selectedNotesList.map(note => 
         `[${note.note_type}] ${note.note_content}`
       ).join('\n');
 
@@ -90,7 +132,7 @@ export default function CreateFromNotesPage() {
           user,
           customer.id,
           customerName,
-          `メモから生成: ${customerNotes.length}件のメモを参照`,
+          `メモから生成: ${selectedNotesList.length}件のメモを参照`,
           messageType,
           tone,
           data.message
@@ -131,24 +173,52 @@ export default function CreateFromNotesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* メモ一覧 */}
+              {/* メモ選択 */}
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">保存されたメモ ({customerNotes.length}件):</h4>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium text-gray-900">
+                    メモを選択 ({selectedNotes.size}/{customerNotes.length}件選択中)
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAll}
+                    className="text-xs"
+                  >
+                    {selectedNotes.size === customerNotes.length ? 'すべて解除' : 'すべて選択'}
+                  </Button>
+                </div>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {customerNotes.map((note) => (
                     <div key={note.id} className="bg-gray-50 p-3 rounded-lg border">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          {note.note_type}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(note.created_at).toLocaleDateString()}
-                        </span>
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          id={note.id}
+                          checked={selectedNotes.has(note.id)}
+                          onCheckedChange={() => handleNoteToggle(note.id)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              {note.note_type}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(note.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-900">{note.note_content}</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-900">{note.note_content}</p>
                     </div>
                   ))}
                 </div>
+                {customerNotes.length === 0 && (
+                  <div className="text-center py-4 text-gray-500">
+                    このお客様のメモはまだありません
+                  </div>
+                )}
               </div>
 
               {/* メッセージ設定 */}
@@ -186,7 +256,7 @@ export default function CreateFromNotesPage() {
                 <div>
                   <Button
                     type="submit"
-                    disabled={isLoading || customerNotes.length === 0}
+                    disabled={isLoading || selectedNotes.size === 0}
                     className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium"
                   >
                     {isLoading ? (
@@ -195,7 +265,7 @@ export default function CreateFromNotesPage() {
                         <span>生成中...</span>
                       </div>
                     ) : (
-                      "✨ メモからメッセージ生成 ✨"
+                      `✨ 選択したメモからメッセージ生成 (${selectedNotes.size}件) ✨`
                     )}
                   </Button>
                 </div>
