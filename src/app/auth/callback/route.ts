@@ -13,10 +13,15 @@ export async function GET(request: NextRequest) {
       const supabase = await createClient();
       
       // PKCEフロー用のexchangeCodeForSession
+      // Supabaseが自動的にcode_verifierを管理するため、codeのみを渡す
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error) {
         console.error("Auth callback error:", error);
+        // エラーの詳細をログに出力
+        if (error.message.includes('code verifier')) {
+          console.error("PKCE code verifier error - this might be a session issue");
+        }
         return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
       }
 
