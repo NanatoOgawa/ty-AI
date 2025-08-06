@@ -104,8 +104,8 @@ export default function ToneAnalysisPage() {
         backUrl="/dashboard"
       />
 
-      <main className="max-w-4xl mx-auto py-4 px-4">
-        <div className="space-y-6">
+      <main className="max-w-md mx-auto py-4 px-4">
+        <div className="space-y-4">
           {/* 概要 */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
@@ -122,11 +122,11 @@ export default function ToneAnalysisPage() {
           </Card>
 
           {/* トーン分析結果 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {toneAnalysis.map((tone) => (
               <Card key={tone.tone_type} className="border-0 shadow-lg">
                 <CardHeader className="pb-3">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                     <CardTitle className="text-lg">
                       {TONE_LABELS[tone.tone_type] || tone.tone_type}
                     </CardTitle>

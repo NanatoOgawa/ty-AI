@@ -138,6 +138,7 @@ export default function CustomersPage() {
   };
 
   const handleEdit = (customer: Customer) => {
+    // 新しいお客様の情報でフォームを更新
     setEditingCustomer(customer);
     setFormData({
       name: customer.name || "",
@@ -201,17 +202,17 @@ export default function CustomersPage() {
         backUrl="/dashboard"
       />
 
-      <main className="max-w-4xl mx-auto py-4 px-4">
+      <main className="max-w-md mx-auto py-4 px-4">
         <div className="space-y-4">
           {/* ヘッダー */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">お客様一覧</h2>
-              <p className="text-gray-600">登録済みのお客様情報を管理できます</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">お客様一覧</h2>
+              <p className="text-sm sm:text-base text-gray-600">登録済みのお客様情報を管理できます</p>
             </div>
             <Button
               onClick={() => setIsFormOpen(true)}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               ✨ 新規登録
             </Button>
@@ -219,178 +220,192 @@ export default function CustomersPage() {
 
           {/* お客様登録・編集フォーム */}
           {isFormOpen && (
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl">
-                  {editingCustomer ? '📝 お客様情報編集' : '✨ 新規お客様登録'}
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  {editingCustomer ? 'お客様の情報を更新します' : '新しいお客様の情報を登録します'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* 基本情報 */}
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-20 flex items-center justify-center z-50 p-4">
+              <Card className="border-0 shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <CardHeader className="pb-4">
+                  <div className="flex justify-between items-center">
                     <div>
-                      <Label htmlFor="name" className="text-base font-medium">
-                        お客様名 *
-                      </Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        placeholder="田中太郎"
-                        className="mt-2"
-                        required
-                      />
+                      <CardTitle className="text-xl">
+                        {editingCustomer ? '📝 お客様情報編集' : '✨ 新規お客様登録'}
+                      </CardTitle>
+                      <CardDescription className="text-sm">
+                        {editingCustomer ? 'お客様の情報を更新します' : '新しいお客様の情報を登録します'}
+                      </CardDescription>
                     </div>
-
-                    <div>
-                      <Label htmlFor="company" className="text-base font-medium">
-                        会社名
-                      </Label>
-                      <Input
-                        id="company"
-                        value={formData.company}
-                        onChange={(e) => setFormData({...formData, company: e.target.value})}
-                        placeholder="株式会社サンプル"
-                        className="mt-2"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="email" className="text-base font-medium">
-                        メールアドレス
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        placeholder="tanaka@example.com"
-                        className="mt-2"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="phone" className="text-base font-medium">
-                        電話番号
-                      </Label>
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        placeholder="090-1234-5678"
-                        className="mt-2"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="relationship" className="text-base font-medium">
-                        関係性
-                      </Label>
-                      <Input
-                        id="relationship"
-                        value={formData.relationship}
-                        onChange={(e) => setFormData({...formData, relationship: e.target.value})}
-                        placeholder="取引先、友人、家族など"
-                        className="mt-2"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="birthday" className="text-base font-medium">
-                        誕生日
-                      </Label>
-                      <Input
-                        id="birthday"
-                        type="date"
-                        value={formData.birthday}
-                        onChange={(e) => setFormData({...formData, birthday: e.target.value})}
-                        className="mt-2"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="anniversary" className="text-base font-medium">
-                        記念日
-                      </Label>
-                      <Input
-                        id="anniversary"
-                        type="date"
-                        value={formData.anniversary}
-                        onChange={(e) => setFormData({...formData, anniversary: e.target.value})}
-                        className="mt-2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* 詳細情報 */}
-                  <div>
-                    <Label htmlFor="preferences" className="text-base font-medium">
-                      好み・趣味
-                    </Label>
-                    <Textarea
-                      id="preferences"
-                      value={formData.preferences}
-                      onChange={(e) => setFormData({...formData, preferences: e.target.value})}
-                      placeholder="好きな食べ物、趣味、興味のある話題など"
-                      rows={3}
-                      className="mt-2"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="important_notes" className="text-base font-medium">
-                      重要メモ
-                    </Label>
-                    <Textarea
-                      id="important_notes"
-                      value={formData.important_notes}
-                      onChange={(e) => setFormData({...formData, important_notes: e.target.value})}
-                      placeholder="アレルギー、避けるべき話題、特別な要望など"
-                      rows={3}
-                      className="mt-2"
-                    />
-                  </div>
-
-                  {/* ボタン */}
-                  <div className="flex space-x-2">
                     <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white"
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                          <span>保存中...</span>
-                        </div>
-                      ) : (
-                        editingCustomer ? "💾 更新" : "💾 登録"
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
+                      variant="ghost"
+                      size="sm"
                       onClick={resetForm}
-                      className="px-6"
+                      className="text-gray-500 hover:text-gray-700"
                     >
-                      キャンセル
+                      ✕
                     </Button>
                   </div>
-                </form>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* 基本情報 */}
+                      <div>
+                        <Label htmlFor="name" className="text-base font-medium">
+                          お客様名 *
+                        </Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          placeholder="田中太郎"
+                          className="mt-2"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="company" className="text-base font-medium">
+                          会社名
+                        </Label>
+                        <Input
+                          id="company"
+                          value={formData.company}
+                          onChange={(e) => setFormData({...formData, company: e.target.value})}
+                          placeholder="株式会社サンプル"
+                          className="mt-2"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="email" className="text-base font-medium">
+                          メールアドレス
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          placeholder="tanaka@example.com"
+                          className="mt-2"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="phone" className="text-base font-medium">
+                          電話番号
+                        </Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                          placeholder="090-1234-5678"
+                          className="mt-2"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="relationship" className="text-base font-medium">
+                          関係性
+                        </Label>
+                        <Input
+                          id="relationship"
+                          value={formData.relationship}
+                          onChange={(e) => setFormData({...formData, relationship: e.target.value})}
+                          placeholder="取引先、友人、家族など"
+                          className="mt-2"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="birthday" className="text-base font-medium">
+                          誕生日
+                        </Label>
+                        <Input
+                          id="birthday"
+                          type="date"
+                          value={formData.birthday}
+                          onChange={(e) => setFormData({...formData, birthday: e.target.value})}
+                          className="mt-2"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="anniversary" className="text-base font-medium">
+                          記念日
+                        </Label>
+                        <Input
+                          id="anniversary"
+                          type="date"
+                          value={formData.anniversary}
+                          onChange={(e) => setFormData({...formData, anniversary: e.target.value})}
+                          className="mt-2"
+                        />
+                      </div>
+                    </div>
+
+                    {/* 詳細情報 */}
+                    <div>
+                      <Label htmlFor="preferences" className="text-base font-medium">
+                        好み・趣味
+                      </Label>
+                      <Textarea
+                        id="preferences"
+                        value={formData.preferences}
+                        onChange={(e) => setFormData({...formData, preferences: e.target.value})}
+                        placeholder="お客様の好み、趣味、興味のあることなど"
+                        rows={3}
+                        className="mt-2"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="important_notes" className="text-base font-medium">
+                        重要なメモ
+                      </Label>
+                      <Textarea
+                        id="important_notes"
+                        value={formData.important_notes}
+                        onChange={(e) => setFormData({...formData, important_notes: e.target.value})}
+                        placeholder="重要な情報、注意点、過去のやり取りなど"
+                        rows={3}
+                        className="mt-2"
+                      />
+                    </div>
+
+                    {/* ボタン */}
+                    <div className="flex justify-end space-x-3 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={resetForm}
+                        className="px-6"
+                      >
+                        キャンセル
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6"
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>保存中...</span>
+                          </div>
+                        ) : (
+                          editingCustomer ? '更新' : '登録'
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* お客様一覧 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {customers.map((customer) => (
               <Card key={customer.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                     <div>
                       <CardTitle className="text-lg">{customer.name}</CardTitle>
                       {customer.company && (
@@ -399,12 +414,12 @@ export default function CustomersPage() {
                         </CardDescription>
                       )}
                     </div>
-                    <div className="flex space-x-1">
+                    <div className="flex space-x-1 w-full sm:w-auto">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleEdit(customer)}
-                        className="text-xs"
+                        className="text-xs flex-1 sm:flex-none"
                       >
                         編集
                       </Button>
@@ -412,7 +427,7 @@ export default function CustomersPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(customer.id)}
-                        className="text-xs text-red-600 hover:text-red-700"
+                        className="text-xs text-red-600 hover:text-red-700 flex-1 sm:flex-none"
                       >
                         削除
                       </Button>
@@ -441,11 +456,11 @@ export default function CustomersPage() {
                       {customer.preferences.length > 50 && '...'}
                     </div>
                   )}
-                  <div className="flex space-x-2 pt-2">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 pt-2">
                     <Button
                       size="sm"
                       onClick={() => handleCreateMessage(customer)}
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs"
+                      className="w-full sm:flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs"
                     >
                       ✨ メッセージ作成
                     </Button>
@@ -453,7 +468,7 @@ export default function CustomersPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => router.push(`/dashboard/notes?customer=${encodeURIComponent(customer.name)}`)}
-                      className="text-xs"
+                      className="w-full sm:flex-1 text-xs"
                     >
                       📝 メモ
                     </Button>

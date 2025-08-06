@@ -112,33 +112,33 @@ export default function DashboardPage() {
           </div>
 
           {/* 機能カード */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* 新規メッセージ作成 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* お客様管理 */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                    <div className="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                     </div>
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-medium text-gray-900">
-                      新規メッセージ作成
+                      お客様管理
                     </h3>
                     <p className="text-sm text-gray-500">
-                      お客様情報を入力してAIメッセージを生成
+                      お客様情報の登録・編集・メッセージ作成
                     </p>
                   </div>
                 </div>
                 <div className="mt-4">
                   <button 
-                    onClick={() => router.push('/dashboard/create')}
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    onClick={() => router.push('/dashboard/customers')}
+                    className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
                   >
-                    作成開始
+                    管理画面
                   </button>
                 </div>
               </div>
@@ -175,37 +175,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* お客様メモ管理 */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      お客様メモ管理
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      お客様情報をメモとして保存
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <button 
-                    onClick={() => router.push('/dashboard/notes')}
-                    className="w-full bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors"
-                  >
-                    メモ管理
-                  </button>
-                </div>
-              </div>
-            </div>
-
             {/* トーン分析・設定 */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-6">
@@ -232,37 +201,6 @@ export default function DashboardPage() {
                     className="w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
                   >
                     トーン分析
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* お客様管理 */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      お客様管理
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      お客様情報の登録・編集
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <button 
-                    onClick={() => router.push('/dashboard/customers')}
-                    className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-                  >
-                    管理画面
                   </button>
                 </div>
               </div>

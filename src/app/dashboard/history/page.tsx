@@ -7,7 +7,8 @@ import { Button } from "../../../components/ui/button";
 import { supabase } from "../../../lib/supabase/client";
 import { getMessageHistory, getStats } from "../../../lib/database";
 import type { User } from "@supabase/supabase-js";
-import type { MessageHistory, UserStats, MESSAGE_TYPE_LABELS, TONE_LABELS } from "../../../types";
+import type { MessageHistory, UserStats } from "../../../types";
+import { MESSAGE_TYPE_LABELS, TONE_LABELS } from "../../../types";
 
 export default function MessageHistoryPage() {
   const router = useRouter();
@@ -68,11 +69,27 @@ export default function MessageHistoryPage() {
   };
 
   const getMessageTypeLabel = (type: string) => {
-    return MESSAGE_TYPE_LABELS[type] || type;
+    return MESSAGE_TYPE_LABELS[type as keyof typeof MESSAGE_TYPE_LABELS] || type;
   };
 
   const getToneLabel = (tone: string) => {
-    return TONE_LABELS[tone] || tone;
+    return TONE_LABELS[tone as keyof typeof TONE_LABELS] || tone;
+  };
+
+  // メッセージの改行を適切に処理する関数
+  const formatMessage = (message: string) => {
+    if (!message) return '';
+    
+    // 連続する改行を2つまでに制限
+    let formatted = message.replace(/\n{3,}/g, '\n\n');
+    
+    // 行頭の余分な空白を削除
+    formatted = formatted.replace(/^\s+/gm, '');
+    
+    // 行末の余分な空白を削除
+    formatted = formatted.replace(/\s+$/gm, '');
+    
+    return formatted;
   };
 
   // お客様名の一覧を取得
@@ -120,12 +137,12 @@ export default function MessageHistoryPage() {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0 space-y-6">
+      <main className="max-w-md mx-auto py-4 px-4">
+        <div className="space-y-4">
           {/* 統計情報 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4">
             <Card>
-              <CardContent className="p-5">
+              <CardContent className="p-4">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
@@ -136,14 +153,14 @@ export default function MessageHistoryPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">作成済みメッセージ</p>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.messageCount}</p>
+                    <p className="text-xl font-semibold text-gray-900">{stats.messageCount}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-5">
+              <CardContent className="p-4">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
@@ -154,14 +171,14 @@ export default function MessageHistoryPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">登録お客様数</p>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.customerCount}</p>
+                    <p className="text-xl font-semibold text-gray-900">{stats.customerCount}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-5">
+              <CardContent className="p-4">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center">
@@ -172,7 +189,7 @@ export default function MessageHistoryPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">今月の使用回数</p>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.monthlyCount}</p>
+                    <p className="text-xl font-semibold text-gray-900">{stats.monthlyCount}</p>
                   </div>
                 </div>
               </CardContent>
@@ -257,13 +274,13 @@ export default function MessageHistoryPage() {
                       
                       <div className="mb-3">
                         <p className="text-sm text-gray-600 font-medium">何があったか:</p>
-                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{message.what_happened}</p>
+                        <p className="text-sm text-gray-800 whitespace-pre-line">{formatMessage(message.what_happened)}</p>
                       </div>
                       
                       <div>
                         <p className="text-sm text-gray-600 font-medium">生成されたメッセージ:</p>
                         <div className="bg-gray-50 p-3 rounded mt-1">
-                          <p className="text-sm text-gray-800 whitespace-pre-wrap">{message.generated_message}</p>
+                          <p className="text-sm text-gray-800 whitespace-pre-line">{formatMessage(message.generated_message)}</p>
                         </div>
                       </div>
                     </div>

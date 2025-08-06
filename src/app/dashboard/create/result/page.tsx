@@ -58,6 +58,22 @@ export default function MessageResultPage() {
     router.push('/dashboard/create');
   };
 
+  // メッセージの改行を適切に処理する関数
+  const formatMessage = (message: string) => {
+    if (!message) return '';
+    
+    // 連続する改行を2つまでに制限
+    let formatted = message.replace(/\n{3,}/g, '\n\n');
+    
+    // 行頭の余分な空白を削除
+    formatted = formatted.replace(/^\s+/gm, '');
+    
+    // 行末の余分な空白を削除
+    formatted = formatted.replace(/\s+$/gm, '');
+    
+    return formatted;
+  };
+
   const handleRating = async (selectedRating: number) => {
     setRating(selectedRating);
   };
@@ -166,9 +182,9 @@ export default function MessageResultPage() {
             </CardHeader>
             <CardContent>
               <div className="bg-gray-50 p-6 rounded-lg border">
-                <pre className="whitespace-pre-wrap text-gray-800 font-medium leading-relaxed">
-                  {result?.message}
-                </pre>
+                <div className="text-gray-800 font-medium leading-relaxed whitespace-pre-line">
+                  {result?.message ? formatMessage(result.message) : ''}
+                </div>
               </div>
               
               {result?.note && (
