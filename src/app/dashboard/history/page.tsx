@@ -253,7 +253,7 @@ export default function MessageHistoryPage() {
                         <div className="text-right">
                           <p className="text-sm text-gray-500">{formatDate(message.created_at)}</p>
                           <Button
-                            onClick={() => handleCopy(message.message)}
+                            onClick={() => handleCopy(message.generated_message)}
                             size="sm"
                             className="mt-1"
                           >
@@ -262,17 +262,17 @@ export default function MessageHistoryPage() {
                         </div>
                       </div>
                       
-                      {message.input_content && (
+                      {message.what_happened && (
                         <div className="mb-3">
                           <p className="text-sm text-gray-600 font-medium">入力内容:</p>
-                          <p className="text-sm text-gray-800 whitespace-pre-line">{formatMessage(message.input_content)}</p>
+                          <p className="text-sm text-gray-800 whitespace-pre-line">{formatMessage(message.what_happened)}</p>
                         </div>
                       )}
                       
                       <div>
                         <p className="text-sm text-gray-600 font-medium">生成されたメッセージ:</p>
                         <div className="bg-gray-50 p-3 rounded mt-1">
-                          <p className="text-sm text-gray-800 whitespace-pre-line">{formatMessage(message.message)}</p>
+                          <p className="text-sm text-gray-800 whitespace-pre-line">{formatMessage(message.generated_message)}</p>
                         </div>
                       </div>
                     </div>

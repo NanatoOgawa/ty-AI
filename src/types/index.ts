@@ -19,11 +19,12 @@ export interface Customer {
 export interface MessageHistory {
   id: string;
   user_id: string;
+  customer_id: string;
   customer_name: string;
-  message: string;
+  generated_message: string;
   message_type: string;
   tone: string;
-  input_content?: string;
+  what_happened?: string;
   created_at: string;
 }
 

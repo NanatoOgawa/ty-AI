@@ -120,12 +120,13 @@ function CreateMessageContent() {
           userId: user.id
         });
         
-        await getOrCreateCustomer(user, customerInfo.customerName);
-        console.log('Customer created/retrieved successfully');
+        const customer = await getOrCreateCustomer(user, customerInfo.customerName);
+        console.log('Customer created/retrieved successfully:', customer.id);
         
         // メッセージ履歴を保存
         await saveMessageHistory(
           user,
+          customer,
           customerInfo.customerName,
           data.message,
           customerInfo.messageType as MessageType,

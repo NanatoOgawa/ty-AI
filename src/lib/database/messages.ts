@@ -1,10 +1,11 @@
 import { supabase } from "../supabase/client";
 import type { User } from "@supabase/supabase-js";
-import type { MessageHistory, MessageType, Tone } from "../../types";
+import type { MessageHistory, MessageType, Tone, Customer } from "../../types";
 
 export interface MessageOperations {
   saveMessageHistory: (
     user: User,
+    customer: Customer,
     customerName: string,
     message: string,
     messageType: MessageType,
@@ -20,6 +21,7 @@ export interface MessageOperations {
 export const messageOperations: MessageOperations = {
   async saveMessageHistory(
     user: User,
+    customer: Customer,
     customerName: string,
     message: string,
     messageType: MessageType,
@@ -36,11 +38,12 @@ export const messageOperations: MessageOperations = {
         .insert([
           {
             user_id: user.id,
+            customer_id: customer.id,
             customer_name: customerName.trim(),
-            message: message.trim(),
+            generated_message: message.trim(),
             message_type: messageType,
             tone: tone,
-            input_content: inputContent?.trim() || '',
+            what_happened: inputContent?.trim() || '',
             created_at: new Date().toISOString()
           }
         ])
@@ -48,8 +51,14 @@ export const messageOperations: MessageOperations = {
         .single();
 
       if (error) {
-        console.error('Error saving message history:', error);
-        throw new Error('Failed to save message history');
+        console.error('Supabase error saving message history:', {
+          error,
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw new Error(`Failed to save message history: ${error.message || 'Unknown error'}`);
       }
 
       console.log('Saved message history for:', customerName);
