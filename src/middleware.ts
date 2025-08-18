@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
 
   // パブリックルート（認証不要）
-  const publicRoutes = ['/login', '/auth/callback', '/auth/signout', '/api', '/test'];
+  const publicRoutes = ['/login', '/auth/callback', '/auth/signout', '/api', '/test', '/debug'];
   const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route));
 
   if (isPublicRoute) {

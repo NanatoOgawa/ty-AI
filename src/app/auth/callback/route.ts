@@ -26,47 +26,12 @@ export async function GET(request: NextRequest) {
           expiresAt: data.session.expires_at
         });
         
-        // リダイレクトURLを動的に生成（改善版）
-        let redirectUrl: string;
-        if (next.startsWith('http')) {
-          redirectUrl = next;
-        } else {
-          redirectUrl = new URL(next, origin).toString();
-        }
+        // リダイレクトURLを動的に生成
+        const redirectUrl = new URL(next, origin);
+        console.log("Redirecting to:", redirectUrl.toString());
         
-        console.log("Redirecting to:", redirectUrl);
-        
-        // レスポンスを作成し、セッションクッキーを確実に設定
-        const response = NextResponse.redirect(redirectUrl);
-        
-        // Supabaseの標準的なセッションクッキー名を生成
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const projectRef = supabaseUrl?.split('//')[1]?.split('.')[0];
-        const sessionCookieName = `sb-${projectRef}-auth-token`;
-        
-        if (data.session.access_token) {
-          // セッション情報をJSON形式で保存
-          const sessionData = {
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
-            expires_in: data.session.expires_in,
-            expires_at: data.session.expires_at,
-            token_type: data.session.token_type,
-            user: data.session.user
-          };
-          
-          response.cookies.set(sessionCookieName, JSON.stringify(sessionData), {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: '/'
-          });
-          
-          console.log("Session cookie set:", sessionCookieName);
-        }
-        
-        return response;
+        // Supabaseの標準処理に任せる（手動クッキー設定を削除）
+        return NextResponse.redirect(redirectUrl.toString());
       } else {
         console.error("Auth callback: No session established");
         return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("セッションの確立に失敗しました")}`);

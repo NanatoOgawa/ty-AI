@@ -86,6 +86,11 @@ export default function LoginPage() {
       const currentOrigin = window.location.origin;
       const redirectUrl = `${currentOrigin}/auth/callback`;
       console.log("Redirect URL (client):", redirectUrl);
+      console.log("Current environment:", {
+        origin: currentOrigin,
+        NODE_ENV: process.env.NODE_ENV,
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL
+      });
       return redirectUrl;
     }
     
