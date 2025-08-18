@@ -172,7 +172,9 @@ export function generatePersonalizedPrompt(
   customerData: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   toneAdjustment: string,
   noteContent?: string,
-  manualRelationshipLevel?: number
+  manualRelationshipLevel?: number,
+  recentMessages?: any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+  customerMessageHistory?: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
 ): string {
   // 関係性レベルの決定（手動指定 > 自動検出 > デフォルト）
   let relationshipLevel = 3; // デフォルト
@@ -281,6 +283,28 @@ ${userProfile ? `
   - 入力：「長時間お付き合いいただいた」→ 変換：「長い時間お付き合いいただき」
   - 入力：「お酒をたくさん飲んでくれた」→ 変換：「お酒をたくさん楽しんでいただき」
 - 入力内容の要点は保持しつつ、${personalityStyle.tone}で温かい表現に変換してください
+
+【過去のメッセージ履歴の参考】
+${customerMessageHistory && customerMessageHistory.length > 0 ? `
+このお客様への過去のメッセージ（参考用）：
+${customerMessageHistory.map((msg, index) => 
+  `${index + 1}. ${msg.message_type}メッセージ（${msg.tone}）: "${msg.generated_message?.substring(0, 100)}${msg.generated_message?.length > 100 ? '...' : ''}"`
+).join('\n')}
+
+- 上記の過去メッセージと似すぎないよう、新鮮味のある表現を心がけてください
+- ただし、お客様に好評だったスタイルや表現は参考にしてください
+- 同じパターンの繰り返しは避け、バリエーションを持たせてください
+` : '- このお客様への過去のメッセージ履歴はありません'}
+
+${recentMessages && recentMessages.length > 0 ? `
+【あなたの最近のメッセージスタイル傾向】
+最近よく使用している表現パターン：
+${recentMessages.slice(0, 3).map((msg) => 
+  `- ${msg.message_type}（${msg.tone}）: "${msg.generated_message?.substring(0, 80)}${msg.generated_message?.length > 80 ? '...' : ''}"`
+).join('\n')}
+
+- あなたらしい一貫したスタイルを保ちつつ、マンネリ化しないよう工夫してください
+` : ''}
 
 【お客様情報の活用】
 ${customerData ? `

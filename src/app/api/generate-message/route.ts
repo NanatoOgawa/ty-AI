@@ -34,9 +34,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ユーザーの設定を取得
+    // ユーザーの設定と履歴を取得
     let userTonePreferences = null;
     let userProfile = null;
+    let recentMessages = null;
+    let customerMessageHistory = null;
     try {
       const supabase = createClient();
       const authHeader = request.headers.get('authorization');
@@ -46,13 +48,22 @@ export async function POST(request: NextRequest) {
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
         if (user && !authError) {
-          const { getUserTonePreferences, getUserProfile } = await import('../../../lib/database');
+          const { getUserTonePreferences, getUserProfile, getMessageHistory } = await import('../../../lib/database');
           userTonePreferences = await getUserTonePreferences(user);
           userProfile = await getUserProfile(user);
+          
+          // 過去のメッセージ履歴を取得（最新5件）
+          const allMessages = await getMessageHistory(user);
+          recentMessages = allMessages.slice(0, 5);
+          
+          // 同じお客様への過去のメッセージを取得（最新3件）
+          customerMessageHistory = allMessages
+            .filter(msg => msg.customer_name === customerName)
+            .slice(0, 3);
         }
       }
     } catch (error) {
-      console.error('Error getting user preferences and profile:', error);
+      console.error('Error getting user preferences, profile and history:', error);
       // エラーが発生しても処理を継続
     }
 
@@ -87,7 +98,9 @@ export async function POST(request: NextRequest) {
         null, // customerData
         '',   // toneAdjustment
         notes, // noteContent for relationship level detection
-        relationshipLevel // manual relationship level
+        relationshipLevel, // manual relationship level
+        recentMessages || undefined,
+        customerMessageHistory || undefined
       );
       
       // メモ専用の追加制限事項を追加
@@ -125,7 +138,10 @@ ${notes}
         whatHappened || '',
         customerData,
         toneAdjustment,
-        noteContent
+        noteContent,
+        undefined, // manualRelationshipLevel
+        recentMessages || undefined,
+        customerMessageHistory || undefined
       );
     }
 
