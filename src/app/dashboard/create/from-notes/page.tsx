@@ -111,7 +111,7 @@ function CreateFromNotesContent() {
         },
         body: JSON.stringify({
           customerName,
-          notesContent,
+          notes: notesContent,
           messageType,
           tone
         }),
