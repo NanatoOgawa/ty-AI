@@ -191,23 +191,32 @@ export default function DebugPage() {
               </ul>
             </div>
             
-            <div className="mt-4 p-4 bg-yellow-50 rounded">
-              <h3 className="font-semibold mb-2">⚙️ Google Cloud Console設定確認</h3>
-              <div className="text-sm space-y-2">
-                <p className="font-medium">承認済みJavaScriptの生成元:</p>
-                <code className="block bg-white p-2 rounded text-xs">
-                  {debugInfo.requiredUrls?.currentSiteUrl}<br/>
-                  http://localhost:3000
-                </code>
-                
-                <p className="font-medium mt-3">承認済みリダイレクトURI:</p>
-                <code className="block bg-white p-2 rounded text-xs">
-                  {debugInfo.requiredUrls?.appCallbackUrl}<br/>
-                  {debugInfo.requiredUrls?.supabaseCallbackUrl}<br/>
-                  http://localhost:3000/auth/callback
-                </code>
-              </div>
-            </div>
+                               <div className="mt-4 p-4 bg-yellow-50 rounded">
+                     <h3 className="font-semibold mb-2">⚙️ Google Cloud Console設定確認</h3>
+                     <div className="text-sm space-y-2">
+                       <p className="font-medium">承認済みJavaScriptの生成元:</p>
+                       <code className="block bg-white p-2 rounded text-xs">
+                         {debugInfo.requiredUrls?.currentSiteUrl}<br/>
+                         http://localhost:3000
+                       </code>
+                       
+                       <p className="font-medium mt-3">承認済みリダイレクトURI:</p>
+                       <code className="block bg-white p-2 rounded text-xs">
+                         {debugInfo.requiredUrls?.supabaseCallbackUrl}<br/>
+                         http://localhost:3000/auth/callback
+                       </code>
+                       
+                       <div className="mt-4 p-2 bg-red-100 rounded">
+                         <p className="font-medium text-red-800">⚠️ 重要: 本番環境では以下のURLが必要です</p>
+                         <p className="text-xs text-red-700 mt-1">
+                           Google Cloud Console → 認証情報 → OAuth 2.0 クライアント ID → 承認済みのリダイレクト URI に追加:
+                         </p>
+                         <code className="block bg-white p-1 rounded text-xs mt-1">
+                           {debugInfo.requiredUrls?.supabaseCallbackUrl}
+                         </code>
+                       </div>
+                     </div>
+                   </div>
             
             <div className="mt-4 p-4 bg-green-50 rounded">
               <h3 className="font-semibold mb-2">🔐 Supabase設定確認</h3>
