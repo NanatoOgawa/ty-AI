@@ -353,28 +353,28 @@ export default function CustomersPage() {
                     {/* 詳細情報 */}
                     <div>
                       <Label htmlFor="preferences" className="text-base font-medium">
-                        好み・趣味
+                        過去の会話履歴・話題
                       </Label>
                       <Textarea
                         id="preferences"
                         value={formData.preferences}
                         onChange={(e) => setFormData({...formData, preferences: e.target.value})}
-                        placeholder="お客様の好み、趣味、興味のあることなど"
-                        rows={3}
+                        placeholder="過去に話した内容、お客様が興味を持った話題、よく話すテーマなど"
+                        rows={4}
                         className="mt-2"
                       />
                     </div>
 
                     <div>
                       <Label htmlFor="important_notes" className="text-base font-medium">
-                        重要なメモ
+                        重要な会話・特記事項
                       </Label>
                       <Textarea
                         id="important_notes"
                         value={formData.important_notes}
                         onChange={(e) => setFormData({...formData, important_notes: e.target.value})}
-                        placeholder="重要な情報、注意点、過去のやり取りなど"
-                        rows={3}
+                        placeholder="印象的だった会話、重要な出来事、注意点、特別な関係性など"
+                        rows={4}
                         className="mt-2"
                       />
                     </div>
@@ -458,7 +458,7 @@ export default function CustomersPage() {
 
                   {customer.preferences && (
                     <div className="text-sm">
-                      <span className="font-medium">🎯</span> {customer.preferences.substring(0, 50)}
+                      <span className="font-medium">💬</span> {customer.preferences.substring(0, 50)}
                       {customer.preferences.length > 50 && '...'}
                     </div>
                   )}
