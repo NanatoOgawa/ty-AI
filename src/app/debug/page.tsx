@@ -4,8 +4,36 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 
+interface DebugInfo {
+  timestamp?: string;
+  environment?: {
+    NODE_ENV?: string;
+    NEXT_PUBLIC_SUPABASE_URL?: string;
+    NEXT_PUBLIC_SITE_URL?: string;
+    origin?: string;
+    pathname?: string;
+    userAgent?: string;
+  };
+  session?: {
+    hasSession: boolean;
+    sessionData?: unknown;
+    sessionError?: string;
+  };
+  user?: {
+    hasUser: boolean;
+    userData?: unknown;
+    userError?: string;
+  };
+  storage?: {
+    localStorage?: Record<string, unknown>;
+    cookies?: Record<string, string>;
+    localStorageKeys?: string[];
+  };
+  error?: string;
+}
+
 export default function DebugPage() {
-  const [debugInfo, setDebugInfo] = useState<any>({});
+  const [debugInfo, setDebugInfo] = useState<DebugInfo>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,7 +50,7 @@ export default function DebugPage() {
           key.includes('supabase') || key.includes('sb-')
         );
         
-        const localStorageData: any = {};
+        const localStorageData: Record<string, unknown> = {};
         localStorageKeys.forEach(key => {
           try {
             localStorageData[key] = JSON.parse(localStorage.getItem(key) || 'null');
@@ -32,7 +60,7 @@ export default function DebugPage() {
         });
 
         // クッキー情報を取得
-        const cookies = document.cookie.split(';').reduce((acc: any, cookie) => {
+        const cookies = document.cookie.split(';').reduce((acc: Record<string, string>, cookie) => {
           const [key, value] = cookie.trim().split('=');
           if (key && (key.includes('supabase') || key.includes('sb-'))) {
             acc[key] = value;
@@ -70,7 +98,9 @@ export default function DebugPage() {
         setDebugInfo(info);
       } catch (error) {
         console.error("Debug info collection error:", error);
-        setDebugInfo({ error: error.message });
+        setDebugInfo({ 
+          error: error instanceof Error ? error.message : 'Unknown error occurred' 
+        });
       } finally {
         setLoading(false);
       }
