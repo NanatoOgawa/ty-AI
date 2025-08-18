@@ -289,13 +289,13 @@ export default function NotesPage() {
                         <div className="flex-1">
                           <div className="flex justify-between items-start mb-2">
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                              {note.note_type}
+                              メモ
                             </span>
                             <span className="text-xs text-gray-500">
                               {new Date(note.created_at).toLocaleDateString()}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-900">{note.note_content}</p>
+                          <p className="text-sm text-gray-900">{note.note}</p>
                         </div>
                       </div>
                     </div>

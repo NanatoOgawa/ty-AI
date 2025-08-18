@@ -19,8 +19,8 @@ function CreateFromNotesContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [customerNotes, setCustomerNotes] = useState<CustomerNote[]>([]);
   const [selectedNotes, setSelectedNotes] = useState<Set<string>>(new Set());
-  const [messageType, setMessageType] = useState<string>(MESSAGE_TYPES.THANK_YOU);
-  const [tone, setTone] = useState<string>(TONES.PROFESSIONAL);
+  const [messageType, setMessageType] = useState<string>('thanks');
+  const [tone, setTone] = useState<string>('polite');
 
   const loadCustomerNotes = useCallback(async () => {
     try {
@@ -100,7 +100,7 @@ function CreateFromNotesContent() {
 
       // メモの内容をまとめる
       const notesContent = selectedNotesList.map(note => 
-        `[${note.note_type}] ${note.note_content}`
+        `${note.note}`
       ).join('\n\n');
 
       // AIメッセージを生成
@@ -215,14 +215,14 @@ function CreateFromNotesContent() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                          {note.note_type}
+                          メモ
                         </span>
                         <span className="text-xs text-gray-500">
                           {new Date(note.created_at).toLocaleDateString('ja-JP')}
                         </span>
                       </div>
                       <p className="text-sm text-gray-700 mt-1 leading-relaxed">
-                        {note.note_content}
+                        {note.note}
                       </p>
                     </div>
                   </div>
@@ -247,10 +247,11 @@ function CreateFromNotesContent() {
                     onChange={(e) => setMessageType(e.target.value as string)}
                     className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   >
-                    <option value="thank_you">お礼</option>
-                    <option value="follow_up">フォロー</option>
-                    <option value="appreciation">感謝</option>
-                    <option value="celebration">お祝い</option>
+                    {MESSAGE_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -262,10 +263,11 @@ function CreateFromNotesContent() {
                     onChange={(e) => setTone(e.target.value as string)}
                     className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   >
-                    <option value="professional">ビジネス</option>
-                    <option value="friendly">親しみ</option>
-                    <option value="formal">フォーマル</option>
-                    <option value="casual">カジュアル</option>
+                    {TONES.map((toneOption) => (
+                      <option key={toneOption.value} value={toneOption.value}>
+                        {toneOption.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

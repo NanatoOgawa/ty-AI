@@ -10,7 +10,7 @@ import { Label } from "../../../components/ui/label";
 import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
 import type { GenerateMessageRequest, Customer } from "../../../types";
-import { MESSAGE_TYPES, TONES } from "../../../types";
+
 import MobileNavigation from "../../../components/common/MobileNavigation";
 
 function CreateMessageContent() {
@@ -20,8 +20,8 @@ function CreateMessageContent() {
   const [customerInfo, setCustomerInfo] = useState<GenerateMessageRequest>({
     customerName: searchParams.get('customer') || '',
     whatHappened: '',
-    messageType: MESSAGE_TYPES.THANK_YOU,
-    tone: TONES.PROFESSIONAL
+    messageType: 'thanks',
+    tone: 'polite'
   });
   const [customerData, setCustomerData] = useState<Customer | null>(null);
 

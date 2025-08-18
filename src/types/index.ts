@@ -18,12 +18,12 @@ export interface Customer {
 // メッセージ履歴の型定義
 export interface MessageHistory {
   id: string;
-  customer_id?: string;
+  user_id: string;
   customer_name: string;
-  what_happened: string;
+  message: string;
   message_type: string;
   tone: string;
-  generated_message: string;
+  input_content?: string;
   created_at: string;
 }
 
@@ -50,11 +50,11 @@ export interface GenerateMessageResponse {
 
 export interface CustomerNote {
   id: string;
-  customer_id: string;
-  note_content: string;
-  note_type: string;
+  user_id: string;
+  customer_name: string;
+  note: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface CreateNoteRequest {
@@ -99,33 +99,37 @@ export interface ToneAnalysis {
 }
 
 // メッセージタイプの定数
-export const MESSAGE_TYPES = {
-  THANK_YOU: 'thank_you',
-  FOLLOW_UP: 'follow_up',
-  APPRECIATION: 'appreciation',
-  CELEBRATION: 'celebration'
-} as const;
+export const MESSAGE_TYPES = [
+  { value: 'thanks', label: 'お礼メッセージ' },
+  { value: 'follow_up', label: 'フォローアップ' },
+  { value: 'appreciation', label: '感謝のメッセージ' },
+  { value: 'celebration', label: 'お祝いメッセージ' }
+] as const;
 
 // トーンの定数
-export const TONES = {
-  PROFESSIONAL: 'professional',
-  FRIENDLY: 'friendly',
-  FORMAL: 'formal',
-  CASUAL: 'casual'
-} as const;
+export const TONES = [
+  { value: 'polite', label: '丁寧' },
+  { value: 'friendly', label: 'フレンドリー' },
+  { value: 'formal', label: 'フォーマル' },
+  { value: 'casual', label: 'カジュアル' }
+] as const;
+
+// 型定義
+export type MessageType = typeof MESSAGE_TYPES[number]['value'];
+export type Tone = typeof TONES[number]['value'];
 
 // メッセージタイプの日本語マッピング
 export const MESSAGE_TYPE_LABELS: Record<string, string> = {
-  [MESSAGE_TYPES.THANK_YOU]: 'お礼メッセージ',
-  [MESSAGE_TYPES.FOLLOW_UP]: 'フォローアップ',
-  [MESSAGE_TYPES.APPRECIATION]: '感謝のメッセージ',
-  [MESSAGE_TYPES.CELEBRATION]: 'お祝いメッセージ'
+  'thanks': 'お礼メッセージ',
+  'follow_up': 'フォローアップ',
+  'appreciation': '感謝のメッセージ',
+  'celebration': 'お祝いメッセージ'
 };
 
 // トーンの日本語マッピング
 export const TONE_LABELS: Record<string, string> = {
-  [TONES.PROFESSIONAL]: 'ビジネスライク',
-  [TONES.FRIENDLY]: '親しみやすい',
-  [TONES.FORMAL]: 'フォーマル',
-  [TONES.CASUAL]: 'カジュアル'
+  'polite': '丁寧',
+  'friendly': 'フレンドリー',
+  'formal': 'フォーマル',
+  'casual': 'カジュアル'
 }; 

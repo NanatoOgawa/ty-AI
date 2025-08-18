@@ -2,168 +2,181 @@ import { MESSAGE_TYPES, TONES, MESSAGE_TYPE_LABELS, TONE_LABELS } from '../types
 
 // 夜職向けのテンプレートメッセージの定義
 export const MESSAGE_TEMPLATES = {
-  [MESSAGE_TYPES.THANK_YOU]: {
-    [TONES.PROFESSIONAL]: `[お客様名]さん
+  'thanks': {
+    'polite': `[お客様名]さん
 
 この度は[出来事]いただき、本当にありがとうございました！
 
 お客様の温かいお気持ちがとても嬉しかったです。
 また機会があれば、よろしくお願いします。
 
-お疲れ様でした。お気をつけてお帰りくださいね💕`,
-    [TONES.FRIENDLY]: `[お客様名]さん
+心より感謝申し上げます。`,
 
-[出来事]いただき、本当にありがとうございました！
+    'friendly': `[お客様名]さん
 
-お客様の優しさに心から感謝しています。
-また遊びに来てくださいね。いつでもお待ちしています✨
+今日は本当にありがとうございました😊
 
-お疲れ様でした！`,
-    [TONES.FORMAL]: `[お客様名]さん
+[出来事]とても楽しくて、あっという間でした！
+また今度もお会いできるのを楽しみにしています♪
 
-この度は[出来事]いただき、心より感謝申し上げます。
+お疲れさまでした！`,
 
-お客様のご厚情に深く感謝いたします。
-また機会があれば、よろしくお願いいたします。
+    'formal': `[お客様名]様
 
-お疲れ様でした。お気をつけてお帰りくださいね💕`,
-    [TONES.CASUAL]: `[お客様名]さん
+この度は[出来事]いただき、誠にありがとうございました。
 
-[出来事]いただき、ありがとうございました！
+お客様にお会いできて大変光栄でした。
+今後ともどうぞよろしくお願い申し上げます。
 
-本当に助かりました。これからもよろしくお願いします。
-また近いうちに遊びに来てくださいね✨
+敬具`,
 
-お疲れ様でした！`
+    'casual': `[お客様名]さん
+
+今日はありがとう！
+
+[出来事]すごく楽しかったよ〜
+また遊びに来てね！
+
+お疲れさま♪`
   },
-  [MESSAGE_TYPES.FOLLOW_UP]: {
-    [TONES.PROFESSIONAL]: `[お客様名]さん
 
-先日は[出来事]いただき、ありがとうございました！
+  'follow_up': {
+    'polite': `[お客様名]さん
 
-また機会があれば、よろしくお願いいたします。
-いつでもお待ちしています✨
+先日は[出来事]いただき、ありがとうございました。
 
-お疲れ様でした！`,
-    [TONES.FRIENDLY]: `[お客様名]さん
+その後いかがお過ごしでしょうか？
+また機会がございましたら、ぜひお声がけください。
 
-先日は[出来事]いただき、ありがとうございました！
+お体にお気をつけて。`,
 
-また遊びに来てくださいね。
-いつでもお待ちしています💕
+    'friendly': `[お客様名]さん
 
-お疲れ様でした！`,
-    [TONES.FORMAL]: `[お客様名]さん
+この前は楽しい時間をありがとうございました😊
 
-先日は[出来事]いただき、心より感謝申し上げます。
+[出来事]のこと、まだ覚えてます！
+また一緒に楽しい時間を過ごしましょうね♪
 
-また機会があれば、よろしくお願いいたします。
-いつでもお待ちしています✨
+元気でいてください！`,
 
-お疲れ様でした！`,
-    [TONES.CASUAL]: `[お客様名]さん
+    'formal': `[お客様名]様
 
-先日は[出来事]いただき、ありがとうございました！
+先日は貴重なお時間をいただき、ありがとうございました。
 
-また近いうちに遊びに来てくださいね✨
+[出来事]のお話、大変興味深く拝聴させていただきました。
+またお会いできる日を楽しみにしております。
 
-お疲れ様でした！`
+ご自愛ください。`,
+
+    'casual': `[お客様名]さん
+
+この前はありがとう！
+
+[出来事]面白かった〜
+また今度話の続きしようね！
+
+元気でね♪`
   },
-  [MESSAGE_TYPES.APPRECIATION]: {
-    [TONES.PROFESSIONAL]: `[お客様名]さん
 
-[出来事]いただき、心より感謝申し上げます。
+  'appreciation': {
+    'polite': `[お客様名]さん
 
-お客様のご厚情に深く感謝いたします。
-これからもよろしくお願いいたします。
+いつもお世話になっております。
 
-またお会いできるのを楽しみにしています💕`,
-    [TONES.FRIENDLY]: `[お客様名]さん
+[出来事]本当に感謝しています。
+お客様のお気遣いに、心から感動しました。
 
-[出来事]いただき、本当にありがとうございます！
+これからもよろしくお願いします。`,
 
-お客様の温かいお気持ちがとても嬉しいです。
-これからもよろしくお願いします。
+    'friendly': `[お客様名]さん
 
-またお会いできるのを楽しみにしています✨`,
-    [TONES.FORMAL]: `[お客様名]さん
+いつもありがとうございます😊
 
-[出来事]いただき、深く感謝申し上げます。
+[出来事]本当に嬉しかったです！
+お客様の優しさに、いつも元気をもらってます♪
 
-お客様のご厚情に深く感謝いたします。
-これからもよろしくお願いいたします。
+また会えるのを楽しみにしてます！`,
 
-またお会いできるのを楽しみにしています💕`,
-    [TONES.CASUAL]: `[お客様名]さん
+    'formal': `[お客様名]様
 
-[出来事]いただき、ありがとうございます！
+平素よりお世話になっております。
 
-本当に助かっています。これからもよろしくお願いします。
-また近いうちに遊びに来てくださいね✨
+[出来事]心より感謝申し上げます。
+お客様のご厚意に深く感銘を受けました。
 
-ありがとう！`
+今後ともご指導ご鞭撻のほど、よろしくお願いいたします。`,
+
+    'casual': `[お客様名]さん
+
+いつもありがとう！
+
+[出来事]めちゃくちゃ嬉しかった〜
+いつも優しくて、本当に感謝してる♪
+
+また会おうね！`
   },
-  [MESSAGE_TYPES.CELEBRATION]: {
-    [TONES.PROFESSIONAL]: `[お客様名]さん
 
-[出来事]、心よりお祝い申し上げます。
+  'celebration': {
+    'polite': `[お客様名]さん
 
-お客様のご成功を心より祝福いたします。
-これからもよろしくお願いいたします。
+[出来事]おめでとうございます！
 
-おめでとうございます！✨`,
-    [TONES.FRIENDLY]: `[お客様名]さん
+素晴らしいニュースを聞かせていただき、
+私も本当に嬉しい気持ちです。
 
-[出来事]、おめでとうございます！
+心からお祝い申し上げます。`,
 
-本当に嬉しいです。これからもよろしくお願いします。
-また遊びに来てくださいね💕
+    'friendly': `[お客様名]さん
 
-おめでとうございました！`,
-    [TONES.FORMAL]: `[お客様名]さん
+[出来事]おめでとうございます🎉
 
-[出来事]、心よりお祝い申し上げます。
+すっごく嬉しいです！
+一緒にお祝いできて幸せです♪
 
-お客様のご成功を心より祝福いたします。
-これからもよろしくお願いいたします。
+本当におめでとう😊`,
 
-おめでとうございます！✨`,
-    [TONES.CASUAL]: `[お客様名]さん
+    'formal': `[お客様名]様
 
-[出来事]、おめでとうございます！
+[出来事]誠におめでとうございます。
 
-本当に嬉しいです。これからもよろしくお願いします。
-また近いうちに遊びに来てくださいね✨
+この度の慶事を心よりお祝い申し上げます。
+今後ますますのご活躍をお祈りしております。
 
-おめでとう！`
+謹んでお祝い申し上げます。`,
+
+    'casual': `[お客様名]さん
+
+[出来事]おめでとう〜🎊
+
+やったね！
+一緒にお祝いできて嬉しい♪
+
+本当におめでとう！`
   }
-} as const;
+};
 
-// プレビューメッセージを生成する関数
-export function generatePreviewMessage(
-  messageType: string,
-  tone: string,
-  customerName: string = "田中太郎",
-  whatHappened: string = "商品をご購入いただき"
-): string {
-  const messageTypeKey = messageType as keyof typeof MESSAGE_TEMPLATES;
-  const toneKey = tone as keyof typeof MESSAGE_TEMPLATES[typeof messageTypeKey];
-  const template = MESSAGE_TEMPLATES[messageTypeKey]?.[toneKey];
-  
-  if (!template) {
-    return "テンプレートが見つかりません";
-  }
-
-  return template
-    .replace(/\[お客様名\]/g, customerName)
-    .replace(/\[出来事\]/g, whatHappened);
+// テンプレートを取得する関数
+export function getTemplate(messageType: string, tone: string): string {
+  const templates = MESSAGE_TEMPLATES as Record<string, Record<string, string>>;
+  return templates[messageType]?.[tone] || '';
 }
 
-// テンプレート情報を取得する関数
-export function getTemplateInfo(messageType: string, tone: string) {
-  return {
-    type: MESSAGE_TYPE_LABELS[messageType] || messageType,
-    tone: TONE_LABELS[tone] || tone,
-    preview: generatePreviewMessage(messageType, tone)
-  };
-} 
+// 利用可能なメッセージタイプを取得
+export function getMessageTypes() {
+  return MESSAGE_TYPES;
+}
+
+// 利用可能なトーンを取得
+export function getTones() {
+  return TONES;
+}
+
+// メッセージタイプのラベルを取得
+export function getMessageTypeLabel(messageType: string): string {
+  return MESSAGE_TYPE_LABELS[messageType] || messageType;
+}
+
+// トーンのラベルを取得
+export function getToneLabel(tone: string): string {
+  return TONE_LABELS[tone] || tone;
+}

@@ -221,7 +221,7 @@ export async function getAllCustomerNotes(
   
   // メモをまとめて文字列として返す
   return notes.map(note => 
-    `[${note.note_type}] ${note.note_content}`
+    `${note.note}`
   ).join('\n');
 }
 
