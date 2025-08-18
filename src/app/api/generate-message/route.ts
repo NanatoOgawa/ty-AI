@@ -30,8 +30,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ユーザーのトーン設定を取得
+    // ユーザーの設定を取得
     let userTonePreferences = null;
+    let userProfile = null;
     try {
       const supabase = createClient();
       const authHeader = request.headers.get('authorization');
@@ -41,12 +42,13 @@ export async function POST(request: NextRequest) {
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
         if (user && !authError) {
-          const { getUserTonePreferences } = await import('../../../lib/database');
+          const { getUserTonePreferences, getUserProfile } = await import('../../../lib/database');
           userTonePreferences = await getUserTonePreferences(user);
+          userProfile = await getUserProfile(user);
         }
       }
     } catch (error) {
-      console.error('Error getting user tone preferences:', error);
+      console.error('Error getting user preferences and profile:', error);
       // エラーが発生しても処理を継続
     }
 
@@ -64,83 +66,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // お客様の基本情報を含めたプロンプトを作成
-    let customerInfoSection = `- お客様名: ${customerName}`;
+
+
+    // プロフィール情報を活用した個別化プロンプト
+    const { generatePersonalizedPrompt } = await import('../../../lib/prompt-generator');
     
-    if (customerData) {
-      customerInfoSection += `\n- 会社名: ${customerData.company || '未登録'}`;
-      customerInfoSection += `\n- 関係性: ${customerData.relationship || '未登録'}`;
-      
-      if (customerData.preferences) {
-        customerInfoSection += `\n- 好み・趣味: ${customerData.preferences}`;
-      }
-      
-      if (customerData.important_notes) {
-        customerInfoSection += `\n- 重要メモ: ${customerData.important_notes}`;
-      }
-      
-      if (customerData.birthday) {
-        customerInfoSection += `\n- 誕生日: ${customerData.birthday}`;
-      }
-      
-      if (customerData.anniversary) {
-        customerInfoSection += `\n- 記念日: ${customerData.anniversary}`;
-      }
+    // 関係性レベル検出のためのメモ内容を取得
+    let noteContent = '';
+    if (customerData?.preferences) {
+      noteContent += customerData.preferences + ' ';
     }
-
-    // 夜職向けの改善されたプロンプト
-    const prompt = `
-あなたは夜職（ホステス、キャバクラ、スナック、バー等）で働く女性です。お客様との親しみやすく温かい関係を大切にしています。
-
-以下の情報を基に、${MESSAGE_TYPE_LABELS[messageType]}を${TONE_LABELS[tone]}なトーンで作成してください。
-
-【お客様情報】
-${customerInfoSection}
-
-【何があったか】
-${whatHappened}
-
-【夜職向けの表現ルール】
-- 「〜さん」「〜ちゃん」などの親しみやすい呼び方を使用
-- 絵文字を適度に使用（😊、💕、✨、🌟）
-- 「本当にありがとうございました！」「とても嬉しかったです」などの温かい表現
-- 「お疲れ様でした」「お気をつけてお帰りくださいね」などの配慮表現
-- 「また遊びに来てくださいね」「いつでもお待ちしています」などの親密感
-- 200-300文字程度で読みやすい文章
-- 段落分けを意識して見やすく
-- 過度にフォーマルな表現は避ける（「敬具」「拝啓」などは使用しない）
-
-【入力内容の自然な変換ルール】
-- ユーザーが入力した「何があったか」の内容を、自然で親しみやすい文章に変換してください
-- 入力内容をそのまま引用するのではなく、夜職の女性が実際に話すような自然な表現にしてください
-- 例：
-  - 入力：「商品を購入した」→ 変換：「素敵な商品をお選びいただき」
-  - 入力：「長時間お付き合いいただいた」→ 変換：「長い時間お付き合いいただき」
-  - 入力：「お酒をたくさん飲んでくれた」→ 変換：「お酒をたくさん楽しんでいただき」
-- 入力内容の要点は保持しつつ、親しみやすく温かい表現に変換してください
-
-【お客様情報の活用】
-${customerData ? `
-- 過去の会話履歴・話題を参考に、より親しみやすい話題を含める
-- 重要な会話・特記事項に記載された内容を考慮する
-- 誕生日や記念日がある場合は、それらを意識した温かいメッセージにする
-- 過去の関係性に応じて適切な敬語レベルを調整する
-` : '- お客様の会話履歴が登録されていないため、一般的な親しみやすい表現を使用する'}
-
-【要求】
-- ${MESSAGE_TYPE_LABELS[messageType]}を作成
-- トーン: ${TONE_LABELS[tone]}
-- 日本語で作成
-- 夜職特有の親しみやすさと温かみを重視
-- お客様への配慮と感謝の気持ちを表現
-- 自然で親しみやすい文章${toneAdjustment}
-- ユーザー入力内容を自然な表現に変換してからメッセージに組み込む
-
-【出力形式】
-メッセージのみを出力してください。説明文は不要です。
-絵文字は適度に使用し、過度にならないようにしてください。
-入力内容をそのまま引用せず、自然な表現に変換してから使用してください。
-`;
+    if (customerData?.important_notes) {
+      noteContent += customerData.important_notes;
+    }
+    
+    const prompt = generatePersonalizedPrompt(
+      userProfile,
+      MESSAGE_TYPE_LABELS[messageType],
+      TONE_LABELS[tone],
+      customerName,
+      whatHappened,
+      customerData,
+      toneAdjustment,
+      noteContent
+    );
 
     // Gemini APIの呼び出し
     const geminiApiKey = process.env.GEMINI_API_KEY;

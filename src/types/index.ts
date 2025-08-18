@@ -133,4 +133,63 @@ export const TONE_LABELS: Record<string, string> = {
   'friendly': 'フレンドリー',
   'formal': 'フォーマル',
   'casual': 'カジュアル'
-}; 
+};
+
+// ユーザープロフィールの型定義
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  work_name: string;          // 源氏名
+  store_type: string;         // 店舗タイプ
+  experience_years: number;   // 経験年数
+  personality_type: string;   // 性格タイプ
+  speaking_style: string;     // 話し方
+  age_range: string;          // 年齢層
+  specialty_topics: string;   // 得意な話題
+  work_schedule: string;      // 勤務時間帯
+  created_at: string;
+  updated_at: string;
+}
+
+// プロフィール選択肢の定義
+export const STORE_TYPES = [
+  { value: 'cabaret', label: 'キャバクラ' },
+  { value: 'snack', label: 'スナック' },
+  { value: 'bar', label: 'バー' },
+  { value: 'lounge', label: 'ラウンジ' },
+  { value: 'club', label: 'クラブ' },
+  { value: 'other', label: 'その他' }
+] as const;
+
+export const PERSONALITY_TYPES = [
+  { value: 'bright', label: '明るい・元気' },
+  { value: 'calm', label: '落ち着いた・上品' },
+  { value: 'friendly', label: 'フレンドリー・親しみやすい' },
+  { value: 'mature', label: '大人っぽい・クール' },
+  { value: 'cute', label: '可愛らしい・甘え上手' },
+  { value: 'intellectual', label: '知的・話し上手' }
+] as const;
+
+export const SPEAKING_STYLES = [
+  { value: 'standard', label: '標準語・丁寧語' },
+  { value: 'kansai', label: '関西弁' },
+  { value: 'casual', label: 'カジュアル・親しみやすい' },
+  { value: 'elegant', label: '上品・エレガント' },
+  { value: 'natural', label: '自然体・素朴' }
+] as const;
+
+export const AGE_RANGES = [
+  { value: 'early_20s', label: '20代前半' },
+  { value: 'late_20s', label: '20代後半' },
+  { value: 'early_30s', label: '30代前半' },
+  { value: 'late_30s', label: '30代後半' },
+  { value: 'over_40', label: '40代以上' }
+] as const;
+
+export const WORK_SCHEDULES = [
+  { value: 'evening', label: '夕方〜深夜（18:00-24:00）' },
+  { value: 'late_night', label: '深夜〜朝方（22:00-5:00）' },
+  { value: 'day_night', label: '昼夜両方（14:00-24:00）' },
+  { value: 'weekend', label: '週末中心' },
+  { value: 'irregular', label: '不定期' }
+] as const; 

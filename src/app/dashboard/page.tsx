@@ -136,6 +136,31 @@ export default function DashboardPage() {
 
         {/* 機能カード */}
         <div className="space-y-4">
+          {/* プロフィール設定 */}
+          <button 
+            onClick={() => router.push('/dashboard/profile')}
+            className="w-full bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow touch-manipulation"
+          >
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">👤</span>
+              </div>
+              <div className="ml-4 text-left">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  プロフィール設定
+                </h3>
+                <p className="text-sm text-gray-600">
+                  あなたの情報を登録してメッセージを個別化
+                </p>
+              </div>
+              <div className="ml-auto">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </button>
+
           {/* お客様管理 */}
           <button 
             onClick={() => router.push('/dashboard/customers')}

@@ -14,59 +14,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const prompt = `
-あなたは夜職（ホステス、キャバクラ、スナック、バー等）で働く女性です。お客様との親しみやすく温かい関係を大切にしています。
+    // プロフィール情報を活用した個別化プロンプト（メモ版）
+    const { generatePersonalizedPrompt } = await import('../../../lib/prompt-generator');
+    
+    // ユーザープロフィールを取得
+    let userProfile = null;
+    try {
+      const { createClient } = await import('../../../lib/supabase/client');
+      const supabase = createClient();
+      
+      // リクエストヘッダーから認証情報を取得
+      const authHeader = request.headers.get('authorization');
+      if (authHeader) {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        
+        if (user && !authError) {
+          const { getUserProfile } = await import('../../../lib/database');
+          userProfile = await getUserProfile(user);
+        }
+      }
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+    }
+    
+    const prompt = generatePersonalizedPrompt(
+      userProfile,
+      MESSAGE_TYPE_LABELS[messageType],
+      TONE_LABELS[tone],
+      customerName,
+      'メモの内容に基づいてメッセージを作成',
+      null, // customerData
+      '',   // toneAdjustment
+      notes // noteContent for relationship level detection
+    );
 
-以下のお客様のメモ情報を基に、${MESSAGE_TYPE_LABELS[messageType]}を${TONE_LABELS[tone]}なトーンで作成してください。
+    // メモ専用の追加制限事項を追加
+    const enhancedPrompt = `${prompt}
 
-【お客様情報】
-- お客様名: ${customerName}
-
-【保存されたメモ】
-${notes}
-
-【夜職向けの表現ルール】
-- 「〜さん」「〜ちゃん」などの親しみやすい呼び方を使用
-- 絵文字を適度に使用（😊、💕、✨、🌟）
-- 「本当にありがとうございました！」「とても嬉しかったです」などの温かい表現
-- 「お疲れ様でした」「お気をつけてお帰りくださいね」などの配慮表現
-- 「また遊びに来てくださいね」「いつでもお待ちしています」などの親密感
-- 200-300文字程度で読みやすい文章
-- 段落分けを意識して見やすく
-- 過度にフォーマルな表現は避ける（「敬具」「拝啓」などは使用しない）
-
-【メモ内容の自然な変換ルール】
-- 保存されたメモの内容を、自然で親しみやすい文章に変換してください
-- メモの内容をそのまま引用するのではなく、夜職の女性が実際に話すような自然な表現にしてください
-- 例：
-  - メモ：「お酒が好き」→ 変換：「お酒を楽しんでいただける」
-  - メモ：「家族の話をよくする」→ 変換：「ご家族の話をよく聞かせていただく」
-  - メモ：「誕生日が近い」→ 変換：「もうすぐお誕生日ですね」
-- メモの要点は保持しつつ、親しみやすく温かい表現に変換してください
-- 複数のメモがある場合は、それらを自然に組み合わせて一つの流れのある文章にしてください
-
-【重要な制限事項】
+【メモからの生成時の特別な制限事項】
 - メモに記載されていない情報は一切使用しないでください
 - お客様の職業、会社名、家族構成、趣味、誕生日などは、メモに明記されていない限り言及しないでください
 - メモの内容のみに基づいてメッセージを作成してください
 - 推測や想像による情報追加は絶対に行わないでください
 - メモに書かれていない詳細な個人情報は含めないでください
+- 関係性レベルはメモ内容から自動判定されますが、メモにない関係性の詳細は推測しないでください
 
-【要求】
-- ${MESSAGE_TYPE_LABELS[messageType]}を作成
-- トーン: ${TONE_LABELS[tone]}
-- 日本語で作成
-- 夜職特有の親しみやすさと温かみを重視
-- お客様への配慮と感謝の気持ちを表現
-- メモに記載された内容のみを活用したメッセージ
-- メモ内容を自然な表現に変換してからメッセージに組み込む
-
-【出力形式】
-メッセージのみを出力してください。説明文は不要です。
-絵文字は適度に使用し、過度にならないようにしてください。
-メモの内容をそのまま引用せず、自然な表現に変換してから使用してください。
-メモに記載されていない情報は絶対に追加しないでください。
 `;
+
+    // 実際のプロンプトとして enhancedPrompt を使用
+    const finalPrompt = enhancedPrompt;
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
     
@@ -87,9 +84,7 @@ ${notes}
           {
             parts: [
               {
-                text: `あなたは夜職で働く親切で温かい女性です。お客様との関係を大切にし、親しみやすく丁寧なメッセージを作成する専門家です。提供されたメモの内容のみに基づいて、正確で親しみやすいメッセージを作成してください。メモにない情報は推測や追加をしないでください。
-
-${prompt}`
+                text: finalPrompt
               }
             ]
           }
