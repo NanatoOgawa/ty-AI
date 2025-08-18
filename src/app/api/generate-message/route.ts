@@ -15,17 +15,21 @@ interface ExtendedGenerateMessageRequest extends GenerateMessageRequest {
     birthday?: string;
     anniversary?: string;
   } | null;
+  // メモからの生成用パラメータ
+  notes?: string;
+  relationshipLevel?: number;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: ExtendedGenerateMessageRequest = await request.json();
-    const { customerName, whatHappened, messageType, tone, customerData } = body;
+    const { customerName, whatHappened, messageType, tone, customerData, notes, relationshipLevel } = body;
 
-    // バリデーション
-    if (!customerName || !whatHappened) {
+    // バリデーション（メモからの生成 vs 通常の生成）
+    const isNotesGeneration = !!notes;
+    if (!customerName || (!whatHappened && !notes)) {
       return NextResponse.json(
-        { error: 'お客様名と何があったかは必須です' },
+        { error: isNotesGeneration ? 'お客様名とメモは必須です' : 'お客様名と何があったかは必須です' },
         { status: 400 }
       );
     }
@@ -71,25 +75,55 @@ export async function POST(request: NextRequest) {
     // プロフィール情報を活用した個別化プロンプト
     const { generatePersonalizedPrompt } = await import('../../../lib/prompt-generator');
     
-    // 関係性レベル検出のためのメモ内容を取得
-    let noteContent = '';
-    if (customerData?.preferences) {
-      noteContent += customerData.preferences + ' ';
+    let prompt;
+    if (isNotesGeneration) {
+      // メモからの生成
+      prompt = generatePersonalizedPrompt(
+        userProfile,
+        MESSAGE_TYPE_LABELS[messageType],
+        TONE_LABELS[tone],
+        customerName,
+        'メモの内容に基づいてメッセージを作成',
+        null, // customerData
+        '',   // toneAdjustment
+        notes, // noteContent for relationship level detection
+        relationshipLevel // manual relationship level
+      );
+      
+      // メモ専用の追加制限事項を追加
+      prompt = `${prompt}
+
+【メモからの生成時の特別な制限事項】
+- メモに記載されていない情報は一切使用しないでください
+- お客様の職業、会社名、家族構成、趣味、誕生日などは、メモに明記されていない限り言及しないでください
+- メモの内容のみに基づいてメッセージを作成してください
+- 推測や想像による情報追加は絶対に行わないでください
+- メモに書かれていない詳細な個人情報は含めないでください
+- 関係性レベルはメモ内容から自動判定されますが、メモにない関係性の詳細は推測しないでください
+
+`;
+    } else {
+      // 通常の生成
+      // 関係性レベル検出のためのメモ内容を取得
+      let noteContent = '';
+      if (customerData?.preferences) {
+        noteContent += customerData.preferences + ' ';
+      }
+      if (customerData?.important_notes) {
+        noteContent += customerData.important_notes;
+      }
+      
+      prompt = generatePersonalizedPrompt(
+        userProfile,
+        MESSAGE_TYPE_LABELS[messageType],
+        TONE_LABELS[tone],
+        customerName,
+        whatHappened || '',
+        customerData,
+        toneAdjustment,
+        noteContent
+      );
     }
-    if (customerData?.important_notes) {
-      noteContent += customerData.important_notes;
-    }
-    
-    const prompt = generatePersonalizedPrompt(
-      userProfile,
-      MESSAGE_TYPE_LABELS[messageType],
-      TONE_LABELS[tone],
-      customerName,
-      whatHappened,
-      customerData,
-      toneAdjustment,
-      noteContent
-    );
 
     // Gemini APIの呼び出し
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -112,7 +146,9 @@ export async function POST(request: NextRequest) {
           {
             parts: [
               {
-                text: `あなたは夜職で働く親切で温かい女性です。お客様との関係を大切にし、親しみやすく丁寧なメッセージを作成する専門家です。以下の指示に従ってメッセージを作成してください。
+                text: isNotesGeneration 
+                  ? prompt // メモからの生成は既に完全なプロンプト
+                  : `あなたは夜職で働く親切で温かい女性です。お客様との関係を大切にし、親しみやすく丁寧なメッセージを作成する専門家です。以下の指示に従ってメッセージを作成してください。
 
 ${prompt}`
               }

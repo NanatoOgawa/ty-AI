@@ -104,9 +104,9 @@ function CreateFromNotesContent() {
         `${note.note}`
       ).join('\n\n');
 
-      // AIメッセージを生成（認証情報を含める）
+      // AIメッセージを生成（統合API使用）
       const { data: { session } } = await supabase.auth.getSession();
-      const response = await fetch('/api/generate-message-from-notes', {
+      const response = await fetch('/api/generate-message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

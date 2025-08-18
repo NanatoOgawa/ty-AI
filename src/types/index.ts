@@ -64,11 +64,7 @@ export interface CreateNoteRequest {
   noteType: string;
 }
 
-export interface GenerateMessageFromNotesRequest {
-  customerName: string;
-  messageType: string;
-  tone: string;
-}
+
 
 export interface UserTonePreference {
   id: string;
