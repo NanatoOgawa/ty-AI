@@ -171,10 +171,17 @@ export function generatePersonalizedPrompt(
   whatHappened: string,
   customerData: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   toneAdjustment: string,
-  noteContent?: string
+  noteContent?: string,
+  manualRelationshipLevel?: number
 ): string {
-  // 関係性レベルの検出
-  const relationshipLevel = noteContent ? detectRelationshipLevel(noteContent) : 3;
+  // 関係性レベルの決定（手動指定 > 自動検出 > デフォルト）
+  let relationshipLevel = 3; // デフォルト
+  if (manualRelationshipLevel && manualRelationshipLevel >= 1 && manualRelationshipLevel <= 5) {
+    relationshipLevel = manualRelationshipLevel;
+  } else if (noteContent) {
+    relationshipLevel = detectRelationshipLevel(noteContent);
+  }
+  
   const relationshipStyle = RELATIONSHIP_LEVELS[relationshipLevel as keyof typeof RELATIONSHIP_LEVELS];
 
   // デフォルト設定

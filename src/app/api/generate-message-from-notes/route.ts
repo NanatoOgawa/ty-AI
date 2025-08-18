@@ -4,8 +4,8 @@ import { MESSAGE_TYPE_LABELS, TONE_LABELS } from '../../../types';
 
 export async function POST(request: NextRequest) {
   try {
-    const body: GenerateMessageFromNotesRequest & { notes: string } = await request.json();
-    const { customerName, messageType, tone, notes } = body;
+    const body: GenerateMessageFromNotesRequest & { notes: string; relationshipLevel?: number } = await request.json();
+    const { customerName, messageType, tone, notes, relationshipLevel } = body;
 
     if (!customerName || !notes) {
       return NextResponse.json(
@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
       'メモの内容に基づいてメッセージを作成',
       null, // customerData
       '',   // toneAdjustment
-      notes // noteContent for relationship level detection
+      notes, // noteContent for relationship level detection
+      relationshipLevel // manual relationship level
     );
 
     // メモ専用の追加制限事項を追加

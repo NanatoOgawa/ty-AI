@@ -21,6 +21,7 @@ function CreateFromNotesContent() {
   const [selectedNotes, setSelectedNotes] = useState<Set<string>>(new Set());
   const [messageType, setMessageType] = useState<string>('thanks');
   const [tone, setTone] = useState<string>('polite');
+  const [relationshipLevel, setRelationshipLevel] = useState<number>(3);
 
   const loadCustomerNotes = useCallback(async () => {
     try {
@@ -103,17 +104,20 @@ function CreateFromNotesContent() {
         `${note.note}`
       ).join('\n\n');
 
-      // AIメッセージを生成
+      // AIメッセージを生成（認証情報を含める）
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch('/api/generate-message-from-notes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
           customerName,
           notes: notesContent,
           messageType,
-          tone
+          tone,
+          relationshipLevel
         }),
       });
 
@@ -270,6 +274,55 @@ function CreateFromNotesContent() {
                     ))}
                   </select>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 関係性レベル選択 */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-gray-900">
+                🤝 お客様との関係性レベル
+              </CardTitle>
+              <CardDescription>
+                お客様との関係の深さを選択してください（メッセージの親密度が変わります）
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-3">
+                {[
+                  { level: 1, name: 'はじめまして・初回', desc: '丁寧で礼儀正しい表現' },
+                  { level: 2, name: '2-3回目・慣れてきた', desc: '丁寧だが親しみやすい表現' },
+                  { level: 3, name: '顔馴染み・親しみやすい', desc: '親しみやすく温かい表現' },
+                  { level: 4, name: '常連・気軽に話せる', desc: '気軽で親しみやすい表現' },
+                  { level: 5, name: '仲の良い常連・特別な関係', desc: 'フレンドリーで親密な表現' }
+                ].map((option) => (
+                  <label
+                    key={option.level}
+                    className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      relationshipLevel === option.level
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="relationshipLevel"
+                      value={option.level}
+                      checked={relationshipLevel === option.level}
+                      onChange={(e) => setRelationshipLevel(Number(e.target.value))}
+                      className="mt-1 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">
+                        レベル{option.level}: {option.name}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {option.desc}
+                      </div>
+                    </div>
+                  </label>
+                ))}
               </div>
             </CardContent>
           </Card>

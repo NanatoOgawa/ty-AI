@@ -93,11 +93,13 @@ function CreateMessageContent() {
         } : null
       };
 
-      // AIメッセージを生成
+      // AIメッセージを生成（認証情報を含める）
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch('/api/generate-message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify(requestData),
       });
