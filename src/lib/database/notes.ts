@@ -9,6 +9,7 @@ export interface NoteOperations {
   updateNote: (user: User, noteId: string, note: string) => Promise<CustomerNote>;
   deleteNote: (user: User, noteId: string) => Promise<void>;
   getSelectedNotes: (user: User, noteIds: string[]) => Promise<CustomerNote[]>;
+  deleteCustomerNote: (user: User, noteId: string) => Promise<void>;
 }
 
 export const noteOperations: NoteOperations = {
@@ -18,13 +19,18 @@ export const noteOperations: NoteOperations = {
     }
 
     try {
+      // まずお客様を取得または作成
+      const { customerOperations } = await import('./customers');
+      const customer = await customerOperations.getOrCreateCustomer(user, customerName);
+
       const { data: savedNote, error } = await supabase
         .from('customer_notes')
         .insert([
           {
             user_id: user.id,
-            customer_name: customerName.trim(),
-            note: note.trim(),
+            customer_id: customer.id,
+            note_content: note.trim(),
+            note_type: 'general',
             created_at: new Date().toISOString()
           }
         ])
@@ -37,7 +43,16 @@ export const noteOperations: NoteOperations = {
       }
 
       console.log('Saved customer note for:', customerName);
-      return savedNote;
+      
+      // 返り値の構造をCustomerNote型に合わせて変換
+      return {
+        id: savedNote.id,
+        user_id: savedNote.user_id,
+        customer_name: customerName.trim(),
+        note: savedNote.note_content,
+        created_at: savedNote.created_at,
+        updated_at: savedNote.updated_at
+      };
     } catch (error) {
       console.error('Error in saveCustomerNote:', error);
       throw error;
@@ -48,11 +63,12 @@ export const noteOperations: NoteOperations = {
     try {
       let query = supabase
         .from('customer_notes')
-        .select('*')
+        .select('*, customers!customer_notes_customer_id_fkey(name)')
         .eq('user_id', user.id);
 
       if (customerName?.trim()) {
-        query = query.eq('customer_name', customerName.trim());
+        // customer_nameで検索する場合は、customersテーブルと結合して検索
+        query = query.eq('customers.name', customerName.trim());
       }
 
       const { data: notes, error } = await query
@@ -63,7 +79,15 @@ export const noteOperations: NoteOperations = {
         throw new Error('Failed to fetch customer notes');
       }
 
-      return notes || [];
+      // 返り値の構造をCustomerNote型に合わせて変換
+      return (notes || []).map(note => ({
+        id: note.id,
+        user_id: note.user_id,
+        customer_name: note.customers?.name || '',
+        note: note.note_content,
+        created_at: note.created_at,
+        updated_at: note.updated_at
+      }));
     } catch (error) {
       console.error('Error in getCustomerNotes:', error);
       throw error;
@@ -74,7 +98,7 @@ export const noteOperations: NoteOperations = {
     try {
       const { data: note, error } = await supabase
         .from('customer_notes')
-        .select('*')
+        .select('*, customers!customer_notes_customer_id_fkey(name)')
         .eq('id', noteId)
         .eq('user_id', user.id)
         .single();
@@ -87,7 +111,15 @@ export const noteOperations: NoteOperations = {
         throw new Error('Failed to fetch note');
       }
 
-      return note;
+      // 返り値の構造をCustomerNote型に合わせて変換
+      return {
+        id: note.id,
+        user_id: note.user_id,
+        customer_name: note.customers?.name || '',
+        note: note.note_content,
+        created_at: note.created_at,
+        updated_at: note.updated_at
+      };
     } catch (error) {
       console.error('Error in getNoteById:', error);
       throw error;
@@ -103,12 +135,12 @@ export const noteOperations: NoteOperations = {
       const { data: updatedNote, error } = await supabase
         .from('customer_notes')
         .update({
-          note: note.trim(),
+          note_content: note.trim(),
           updated_at: new Date().toISOString()
         })
         .eq('id', noteId)
         .eq('user_id', user.id)
-        .select()
+        .select('*, customers!customer_notes_customer_id_fkey(name)')
         .single();
 
       if (error) {
@@ -117,7 +149,16 @@ export const noteOperations: NoteOperations = {
       }
 
       console.log('Updated note:', noteId);
-      return updatedNote;
+      
+      // 返り値の構造をCustomerNote型に合わせて変換
+      return {
+        id: updatedNote.id,
+        user_id: updatedNote.user_id,
+        customer_name: updatedNote.customers?.name || '',
+        note: updatedNote.note_content,
+        created_at: updatedNote.created_at,
+        updated_at: updatedNote.updated_at
+      };
     } catch (error) {
       console.error('Error in updateNote:', error);
       throw error;
@@ -152,7 +193,7 @@ export const noteOperations: NoteOperations = {
     try {
       const { data: notes, error } = await supabase
         .from('customer_notes')
-        .select('*')
+        .select('*, customers!customer_notes_customer_id_fkey(name)')
         .eq('user_id', user.id)
         .in('id', noteIds)
         .order('created_at', { ascending: false });
@@ -162,9 +203,37 @@ export const noteOperations: NoteOperations = {
         throw new Error('Failed to fetch selected notes');
       }
 
-      return notes || [];
+      // 返り値の構造をCustomerNote型に合わせて変換
+      return (notes || []).map(note => ({
+        id: note.id,
+        user_id: note.user_id,
+        customer_name: note.customers?.name || '',
+        note: note.note_content,
+        created_at: note.created_at,
+        updated_at: note.updated_at
+      }));
     } catch (error) {
       console.error('Error in getSelectedNotes:', error);
+      throw error;
+    }
+  },
+
+  async deleteCustomerNote(user: User, noteId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('customer_notes')
+        .delete()
+        .eq('id', noteId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error deleting customer note:', error);
+        throw new Error('Failed to delete customer note');
+      }
+
+      console.log('Deleted customer note:', noteId);
+    } catch (error) {
+      console.error('Error in deleteCustomerNote:', error);
       throw error;
     }
   }
