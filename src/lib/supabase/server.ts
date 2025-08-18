@@ -32,7 +32,7 @@ export async function createClient() {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-        flowType: 'pkce'
+        flowType: 'implicit'
       },
       cookies: {
         getAll() {
@@ -40,10 +40,19 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Code Verifierのクッキーを確実に設定
+              const cookieOptions = {
+                ...options,
+                httpOnly: false, // クライアントサイドからもアクセス可能
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax' as const,
+                path: '/'
+              };
+              cookieStore.set(name, value, cookieOptions);
+            });
+          } catch (error) {
+            console.error("Cookie setting error:", error);
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
             // user sessions.
