@@ -11,6 +11,7 @@ import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
 import type { GenerateMessageRequest, Customer } from "../../../types";
 import { MESSAGE_TYPES, TONES } from "../../../types";
+import MobileNavigation from "../../../components/common/MobileNavigation";
 
 function CreateMessageContent() {
   const router = useRouter();
@@ -146,7 +147,7 @@ function CreateMessageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <PageHeader 
         title="新規メッセージ作成" 
         showBackButton={true} 
@@ -309,6 +310,9 @@ function CreateMessageContent() {
           </Card>
         </div>
       </main>
+      
+      {/* モバイルナビゲーション */}
+      <MobileNavigation />
     </div>
   );
 }

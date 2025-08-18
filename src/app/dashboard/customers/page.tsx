@@ -10,6 +10,7 @@ import { Textarea } from "../../../components/ui/textarea";
 import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
 import type { Customer } from "../../../types";
+import MobileNavigation from "../../../components/common/MobileNavigation";
 
 interface CustomerFormData {
   name: string;
@@ -217,7 +218,7 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <PageHeader 
         title="お客様管理" 
         showBackButton={true} 
@@ -515,6 +516,9 @@ export default function CustomersPage() {
           )}
         </div>
       </main>
+      
+      {/* モバイルナビゲーション */}
+      <MobileNavigation />
     </div>
   );
 } 

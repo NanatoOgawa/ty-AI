@@ -9,6 +9,8 @@ import { getMessageHistory, getStats } from "../../../lib/database";
 import type { User } from "@supabase/supabase-js";
 import type { MessageHistory, UserStats } from "../../../types";
 import { MESSAGE_TYPE_LABELS, TONE_LABELS } from "../../../types";
+import { PageHeader } from "../../../components/common/PageHeader";
+import MobileNavigation from "../../../components/common/MobileNavigation";
 
 export default function MessageHistoryPage() {
   const router = useRouter();
@@ -117,25 +119,12 @@ export default function MessageHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                ← ダッシュボードに戻る
-              </button>
-              <h1 className="text-xl font-semibold text-gray-900">
-                📋 メッセージ履歴
-              </h1>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 pb-20">
+      <PageHeader 
+        title="メッセージ履歴" 
+        showBackButton={true} 
+        backUrl="/dashboard"
+      />
 
       {/* メインコンテンツ */}
       <main className="max-w-md mx-auto py-4 px-4">
@@ -292,6 +281,9 @@ export default function MessageHistoryPage() {
           </Card>
         </div>
       </main>
+      
+      {/* モバイルナビゲーション */}
+      <MobileNavigation />
     </div>
   );
 } 

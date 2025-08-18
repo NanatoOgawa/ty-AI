@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase/client";
 import { getStats } from "../../lib/database";
 import type { User } from "@supabase/supabase-js";
 import type { UserStats } from "../../types";
+import MobileNavigation from "../../components/common/MobileNavigation";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -78,110 +79,112 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-40">
+        <div className="max-w-md mx-auto px-4">
+          <div className="flex justify-between items-center py-4">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
                 リピートつながるAI
               </h1>
+              <p className="text-sm text-gray-500">お客様との関係を深めるAI</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                {user.email}
-              </span>
-              <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  router.push('/login');
-                }}
-                className="px-3 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-              >
-                ログアウト
-              </button>
-            </div>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.push('/login');
+              }}
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full touch-manipulation"
+              aria-label="ログアウト"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {/* ウェルカムメッセージ */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              ようこそ、{user.email}さん
-            </h2>
-            <p className="text-gray-600">
-              AIがあなたのお客様との関係を深めるお礼メッセージを生成します。
-            </p>
+      <main className="max-w-md mx-auto py-4 px-4">
+        {/* ウェルカムメッセージ */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            ようこそ！
+          </h2>
+          <p className="text-sm text-gray-600">
+            AIがお客様との関係を深めるメッセージを生成します
+          </p>
+        </div>
+
+        {/* 統計情報 */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div className="text-2xl font-bold text-blue-600">{stats.messageCount}</div>
+            <div className="text-xs text-gray-600">作成済み</div>
           </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div className="text-2xl font-bold text-green-600">{stats.customerCount}</div>
+            <div className="text-xs text-gray-600">お客様数</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div className="text-2xl font-bold text-purple-600">{stats.monthlyCount}</div>
+            <div className="text-xs text-gray-600">今月の利用</div>
+          </div>
+        </div>
 
-          {/* 機能カード */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* お客様管理 */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      お客様管理
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      お客様情報の登録・編集・メッセージ作成
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <button 
-                    onClick={() => router.push('/dashboard/customers')}
-                    className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-                  >
-                    管理画面
-                  </button>
-                </div>
+        {/* 機能カード */}
+        <div className="space-y-4">
+          {/* お客様管理 */}
+          <button 
+            onClick={() => router.push('/dashboard/customers')}
+            className="w-full bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow touch-manipulation"
+          >
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">👥</span>
+              </div>
+              <div className="ml-4 text-left">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  お客様管理
+                </h3>
+                <p className="text-sm text-gray-600">
+                  情報登録・編集・メッセージ作成
+                </p>
+              </div>
+              <div className="ml-auto">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
+          </button>
 
-            {/* メッセージ履歴 */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      メッセージ履歴
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      過去に作成したメッセージを確認
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <button 
-                    onClick={() => router.push('/dashboard/history')}
-                    className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                  >
-                    履歴を見る
-                  </button>
-                </div>
+          {/* メッセージ履歴 */}
+          <button 
+            onClick={() => router.push('/dashboard/history')}
+            className="w-full bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow touch-manipulation"
+          >
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">📋</span>
+              </div>
+              <div className="ml-4 text-left">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  メッセージ履歴
+                </h3>
+                <p className="text-sm text-gray-600">
+                  過去のメッセージ確認・管理
+                </p>
+              </div>
+              <div className="ml-auto">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
+          </button>
 
             {/* トーン分析・設定 */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -270,9 +273,35 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
+          {/* トーン分析 */}
+          <button 
+            onClick={() => router.push('/dashboard/tone-analysis')}
+            className="w-full bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow touch-manipulation"
+          >
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">📊</span>
+              </div>
+              <div className="ml-4 text-left">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  トーン分析
+                </h3>
+                <p className="text-sm text-gray-600">
+                  メッセージの傾向分析と設定
+                </p>
+              </div>
+              <div className="ml-auto">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </button>
         </div>
       </main>
+      
+      {/* モバイルナビゲーション */}
+      <MobileNavigation />
     </div>
   );
 } 

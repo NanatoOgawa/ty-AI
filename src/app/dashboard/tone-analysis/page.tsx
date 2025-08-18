@@ -7,6 +7,7 @@ import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
 import type { ToneAnalysis } from "../../../types";
 import { TONE_LABELS } from "../../../types";
+import MobileNavigation from "../../../components/common/MobileNavigation";
 
 export default function ToneAnalysisPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -89,12 +90,12 @@ export default function ToneAnalysisPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
+    return (
+    <div className="min-h-screen bg-gray-50 pb-20">
       <PageHeader 
         title="トーン分析・設定" 
         showBackButton={true} 
-        backUrl="/dashboard"
+        backUrl="/dashboard" 
       />
 
       <main className="max-w-md mx-auto py-4 px-4">
@@ -236,6 +237,9 @@ export default function ToneAnalysisPage() {
           </Card>
         </div>
       </main>
+      
+      {/* モバイルナビゲーション */}
+      <MobileNavigation />
     </div>
   );
 } 

@@ -11,6 +11,7 @@ import { Checkbox } from "../../../components/ui/checkbox";
 import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
 import type { CustomerNote } from "../../../types";
+import MobileNavigation from "../../../components/common/MobileNavigation";
 
 export default function NotesPage() {
   const router = useRouter();
@@ -139,7 +140,7 @@ export default function NotesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <PageHeader 
         title="お客様メモ管理" 
         showBackButton={true} 
@@ -321,6 +322,9 @@ export default function NotesPage() {
           </Card>
         </div>
       </main>
+      
+      {/* モバイルナビゲーション */}
+      <MobileNavigation />
     </div>
   );
 } 
