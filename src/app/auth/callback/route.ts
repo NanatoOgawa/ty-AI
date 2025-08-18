@@ -13,25 +13,10 @@ export async function GET(request: NextRequest) {
       const supabase = await createClient();
       
       console.log("Attempting to exchange code for session...");
-      
-      // PKCEフロー用のexchangeCodeForSession
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error) {
         console.error("Auth callback error:", error);
-        console.error("Error details:", {
-          message: error.message,
-          status: error.status,
-          name: error.name
-        });
-        
-        // PKCEエラーの場合は特別な処理
-        if (error.message.includes('code verifier')) {
-          console.log("PKCE error detected, attempting alternative approach...");
-          // implicitフローにフォールバック
-          return NextResponse.redirect(`${origin}/login?pkce_error=true`);
-        }
-        
         return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
       }
 
@@ -41,20 +26,9 @@ export async function GET(request: NextRequest) {
           expiresAt: data.session.expires_at
         });
         
-        // セッションが確実に保存されるまで少し待機
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // リダイレクトURLを動的に生成
         const redirectUrl = new URL(next, origin);
         console.log("Redirecting to:", redirectUrl.toString());
-        
-        // レスポンスヘッダーにキャッシュ無効化を追加
-        const response = NextResponse.redirect(redirectUrl.toString());
-        response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-        response.headers.set('Pragma', 'no-cache');
-        response.headers.set('Expires', '0');
-        
-        return response;
+        return NextResponse.redirect(redirectUrl.toString());
       } else {
         console.error("Auth callback: No session established");
         return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("セッションの確立に失敗しました")}`);

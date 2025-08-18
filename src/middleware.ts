@@ -29,8 +29,13 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
 
   // パブリックルート（認証不要）
-  const publicRoutes = ['/login', '/auth/callback', '/auth/signout', '/api', '/test', '/debug'];
+  const publicRoutes = ['/login', '/auth', '/api', '/test', '/debug'];
   const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+
+  // 重要な認証イベントのみログ出力
+  if (!session && !isPublicRoute) {
+    console.log("Auth required - redirecting to login:", request.nextUrl.pathname);
+  }
 
   if (isPublicRoute) {
     return response;
@@ -38,11 +43,6 @@ export async function middleware(request: NextRequest) {
 
   // 認証が必要なルート
   if (!session) {
-    // 既にログインページにいる場合はリダイレクトしない
-    if (request.nextUrl.pathname === '/login') {
-      return response;
-    }
-    
     // リダイレクトURLを動的に生成
     const loginUrl = new URL('/login', request.url);
     console.log("No session found, redirecting to login:", loginUrl.toString());
@@ -53,7 +53,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: [],
 }; 

@@ -26,8 +26,7 @@ export const supabase: SupabaseClient = createSupabaseClient(supabaseUrl, supaba
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
-    debug: process.env.NODE_ENV === 'development'
+    flowType: 'pkce'
   }
 });
 

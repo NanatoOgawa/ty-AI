@@ -32,8 +32,7 @@ export async function createClient() {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-        flowType: 'pkce',
-        debug: process.env.NODE_ENV === 'development'
+        flowType: 'pkce'
       },
       cookies: {
         getAll() {
