@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { supabase } from "../../../lib/supabase/client";
-import { getMessageHistory, getStats } from "../../../lib/database";
+import { getMessageHistory, getStats } from "../../../lib/database/index";
 import type { User } from "@supabase/supabase-js";
 import type { MessageHistory, UserStats } from "../../../types";
 import { MESSAGE_TYPE_LABELS, TONE_LABELS } from "../../../types";

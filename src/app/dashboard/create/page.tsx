@@ -111,18 +111,17 @@ function CreateMessageContent() {
       // データベースに保存
       try {
         // お客様情報を取得または作成
-        const { getOrCreateCustomer, saveMessageHistory } = await import('../../../lib/database');
-        const customer = await getOrCreateCustomer(user, customerInfo.customerName);
+        const { getOrCreateCustomer, saveMessageHistory } = await import('../../../lib/database/index');
+        await getOrCreateCustomer(user, customerInfo.customerName);
         
         // メッセージ履歴を保存
         await saveMessageHistory(
           user,
-          customer.id,
           customerInfo.customerName,
-          customerInfo.whatHappened,
-          customerInfo.messageType,
-          customerInfo.tone,
-          data.message
+          data.message,
+          customerInfo.messageType as 'thanks',
+          customerInfo.tone as 'polite',
+          customerInfo.whatHappened
         );
         
         console.log('Message and history saved successfully');

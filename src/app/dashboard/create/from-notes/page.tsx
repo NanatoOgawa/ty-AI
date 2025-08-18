@@ -30,7 +30,7 @@ function CreateFromNotesContent() {
         throw new Error('ユーザーが認証されていません');
       }
 
-      const { getOrCreateCustomer, getCustomerNotes } = await import('../../../../lib/database');
+      const { getOrCreateCustomer, getCustomerNotes } = await import('../../../../lib/database/index');
       const customer = await getOrCreateCustomer(user, customerName);
       const notes = await getCustomerNotes(user, customer.id);
       

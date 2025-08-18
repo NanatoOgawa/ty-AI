@@ -46,8 +46,8 @@ export default function ToneAnalysisPage() {
         throw new Error('ユーザーが認証されていません');
       }
 
-      const { saveUserTonePreference } = await import('../../../lib/database');
-      await saveUserTonePreference(user, toneType, score);
+      const { saveUserTonePreference } = await import('../../../lib/database/index');
+      await saveUserTonePreference(user, toneType as 'polite', score);
       
       // 分析を再読み込み
       await loadToneAnalysis();

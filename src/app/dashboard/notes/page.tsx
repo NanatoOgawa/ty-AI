@@ -51,10 +51,10 @@ export default function NotesPage() {
         throw new Error('ユーザーが認証されていません');
       }
 
-      const { getOrCreateCustomer, saveCustomerNote } = await import('../../../lib/database');
-      const customer = await getOrCreateCustomer(user, customerName);
+      const { getOrCreateCustomer, saveCustomerNote } = await import('../../../lib/database/index');
+      await getOrCreateCustomer(user, customerName);
       
-      await saveCustomerNote(user, customer.id, noteContent, noteType);
+      await saveCustomerNote(user, customerName, noteContent);
 
       // フォームをリセット
       setCustomerName("");

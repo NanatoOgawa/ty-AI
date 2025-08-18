@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase/client";
-import { getStats } from "../../lib/database";
+import { getStats } from "../../lib/database/index";
 import type { User } from "@supabase/supabase-js";
 import type { UserStats } from "../../types";
 import MobileNavigation from "../../components/common/MobileNavigation";

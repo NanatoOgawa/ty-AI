@@ -17,7 +17,6 @@ interface CustomerFormData {
   company: string;
   email: string;
   phone: string;
-  relationship: string;
   preferences: string;
   important_notes: string;
   birthday: string;
@@ -35,7 +34,6 @@ export default function CustomersPage() {
     company: "",
     email: "",
     phone: "",
-    relationship: "",
     preferences: "",
     important_notes: "",
     birthday: "",
@@ -109,7 +107,7 @@ export default function CustomersPage() {
         company: formData.company?.trim() || null,
         email: formData.email?.trim() || null,
         phone: formData.phone?.trim() || null,
-        relationship: formData.relationship?.trim() || null,
+
         preferences: formData.preferences?.trim() || null,
         important_notes: formData.important_notes?.trim() || null,
         birthday: formData.birthday?.trim() || null,
@@ -161,7 +159,7 @@ export default function CustomersPage() {
       company: customer.company || "",
       email: customer.email || "",
       phone: customer.phone || "",
-      relationship: customer.relationship || "",
+
       preferences: customer.preferences || "",
       important_notes: customer.important_notes || "",
       birthday: customer.birthday || "",
@@ -195,7 +193,7 @@ export default function CustomersPage() {
       company: "",
       email: "",
       phone: "",
-      relationship: "",
+
       preferences: "",
       important_notes: "",
       birthday: "",
@@ -323,18 +321,7 @@ export default function CustomersPage() {
                         />
                       </div>
 
-                      <div>
-                        <Label htmlFor="relationship" className="text-base font-medium">
-                          関係性
-                        </Label>
-                        <Input
-                          id="relationship"
-                          value={formData.relationship}
-                          onChange={(e) => setFormData({...formData, relationship: e.target.value})}
-                          placeholder="取引先、友人、家族など"
-                          className="mt-2"
-                        />
-                      </div>
+
 
                       <div>
                         <Label htmlFor="birthday" className="text-base font-medium">
@@ -468,11 +455,7 @@ export default function CustomersPage() {
                       <span className="font-medium">📞</span> {customer.phone}
                     </div>
                   )}
-                  {customer.relationship && (
-                    <div className="text-sm">
-                      <span className="font-medium">👥</span> {customer.relationship}
-                    </div>
-                  )}
+
                   {customer.preferences && (
                     <div className="text-sm">
                       <span className="font-medium">🎯</span> {customer.preferences.substring(0, 50)}

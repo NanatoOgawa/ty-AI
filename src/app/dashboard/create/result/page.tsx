@@ -105,10 +105,10 @@ function MessageResultContent() {
         throw new Error('メッセージ履歴が見つかりません');
       }
 
-      const { saveMessageRating, updateToneUsageCount } = await import('../../../../lib/database');
+      const { saveMessageRating, updateToneUsageCount } = await import('../../../../lib/database/index');
       
       // 評価を保存
-      await saveMessageRating(user, messages[0].id, rating, messages[0].tone, feedback);
+      await saveMessageRating(user, messages[0].id, rating);
       
       // トーン使用回数を更新
       await updateToneUsageCount(user, messages[0].tone);
