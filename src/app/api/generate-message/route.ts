@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         MESSAGE_TYPE_LABELS[messageType],
         TONE_LABELS[tone],
         customerName,
-        'メモの内容に基づいてメッセージを作成',
+        notes, // メモの内容をwhatHappenedとして使用
         null, // customerData
         '',   // toneAdjustment
         notes, // noteContent for relationship level detection
@@ -93,13 +93,17 @@ export async function POST(request: NextRequest) {
       // メモ専用の追加制限事項を追加
       prompt = `${prompt}
 
+【メモの内容】
+${notes}
+
 【メモからの生成時の特別な制限事項】
+- 上記のメモの内容のみに基づいてメッセージを作成してください
 - メモに記載されていない情報は一切使用しないでください
 - お客様の職業、会社名、家族構成、趣味、誕生日などは、メモに明記されていない限り言及しないでください
-- メモの内容のみに基づいてメッセージを作成してください
 - 推測や想像による情報追加は絶対に行わないでください
 - メモに書かれていない詳細な個人情報は含めないでください
-- 関係性レベルはメモ内容から自動判定されますが、メモにない関係性の詳細は推測しないでください
+- メモの内容を自然な表現に変換してメッセージに組み込んでください
+- 関係性レベル${relationshipLevel || 3}/5に応じた適切な敬語と親しみやすさでメッセージを作成してください
 
 `;
     } else {

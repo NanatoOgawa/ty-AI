@@ -257,7 +257,7 @@ ${userProfile ? `
 ` : '- 一般的な夜職の女性らしい親しみやすい表現を使用'}
 
 【お客様との関係性】
-- 関係性レベル: ${relationshipLevel}/10 (${relationshipStyle.name})
+- 関係性レベル: ${relationshipLevel}/5 (${relationshipStyle.name})
 - 関係性に応じた表現: ${relationshipStyle.tone}
 - 適切な敬語レベル: ${relationshipStyle.formality}
 - 絵文字の使用頻度: ${relationshipStyle.emoji_frequency}
