@@ -265,68 +265,18 @@ ${userProfile ? `
 - 絵文字の使用頻度: ${relationshipStyle.emoji_frequency}
 - この関係性での典型的な表現: ${relationshipStyle.expressions.join('、')}
 
-【${userProfile?.store_type ? storeSpecificTerms.atmosphere : '夜職'}向けの表現ルール】
-- 「〜さん」「〜ちゃん」などの親しみやすい呼び方を使用
-- 絵文字を適度に使用（${userProfile ? personalityStyle.emoji_style : '😊、💕、✨、🌟'}）
-- ${userProfile ? `「${storeSpecificTerms.greeting}」のような挨拶表現` : '温かい挨拶表現'}
-- ${userProfile ? `「${storeSpecificTerms.closing}」のような配慮表現` : '配慮のある表現'}
-- ${userProfile ? storeSpecificTerms.terms.join('、') : 'お時間をいただき、お付き合いいただき'}などの丁寧な表現
-- 200-300文字程度で読みやすい文章
-- 段落分けを意識して見やすく
-- 過度にフォーマルな表現は避ける（「敬具」「拝啓」などは使用しない）
+【スタイル】${userProfile ? personalityStyle.tone : '親しみやすい表現'}、${speakingPattern.style}、${relationshipStyle.formality}、絵文字${relationshipStyle.emoji_frequency}
 
-【入力内容の自然な変換ルール】
-- ユーザーが入力した「何があったか」の内容を、${speakingPattern.style}で自然に変換してください
-- 入力内容をそのまま引用するのではなく、${personalityStyle.tone}で実際に話すような自然な表現にしてください
-- 例：
-  - 入力：「商品を購入した」→ 変換：「素敵な商品をお選びいただき」
-  - 入力：「長時間お付き合いいただいた」→ 変換：「長い時間お付き合いいただき」
-  - 入力：「お酒をたくさん飲んでくれた」→ 変換：「お酒をたくさん楽しんでいただき」
-- 入力内容の要点は保持しつつ、${personalityStyle.tone}で温かい表現に変換してください
+【履歴参考】
+${customerMessageHistory && customerMessageHistory.length > 0 ? 
+`過去: ${customerMessageHistory.slice(0, 1).map(msg => `"${msg.generated_message?.substring(0, 50)}..."`).join('')} - 似すぎないよう新鮮味を持たせて` : 
+recentMessages && recentMessages.length > 0 ? 
+`最近のスタイル: ${recentMessages.slice(0, 1).map(msg => `"${msg.generated_message?.substring(0, 40)}..."`).join('')} - 一貫性を保ちつつバリエーション重視` : ''}
 
-【過去のメッセージ履歴の参考】
-${customerMessageHistory && customerMessageHistory.length > 0 ? `
-このお客様への過去のメッセージ（参考用）：
-${customerMessageHistory.map((msg, index) => 
-  `${index + 1}. ${msg.message_type}メッセージ（${msg.tone}）: "${msg.generated_message?.substring(0, 100)}${msg.generated_message?.length > 100 ? '...' : ''}"`
-).join('\n')}
+【活用】${customerData ? '会話履歴・特記事項を考慮、誕生日等を意識' : '一般的な親しみやすい表現'}
 
-- 上記の過去メッセージと似すぎないよう、新鮮味のある表現を心がけてください
-- ただし、お客様に好評だったスタイルや表現は参考にしてください
-- 同じパターンの繰り返しは避け、バリエーションを持たせてください
-` : '- このお客様への過去のメッセージ履歴はありません'}
+【要求】${messageType}（${tone}）、${userProfile?.store_type ? storeSpecificTerms.atmosphere : '夜職'}らしく配慮と感謝を表現${toneAdjustment}
 
-${recentMessages && recentMessages.length > 0 ? `
-【あなたの最近のメッセージスタイル傾向】
-最近よく使用している表現パターン：
-${recentMessages.slice(0, 3).map((msg) => 
-  `- ${msg.message_type}（${msg.tone}）: "${msg.generated_message?.substring(0, 80)}${msg.generated_message?.length > 80 ? '...' : ''}"`
-).join('\n')}
-
-- あなたらしい一貫したスタイルを保ちつつ、マンネリ化しないよう工夫してください
-` : ''}
-
-【お客様情報の活用】
-${customerData ? `
-- 過去の会話履歴・話題を参考に、より親しみやすい話題を含める
-- 重要な会話・特記事項に記載された内容を考慮する
-- 誕生日や記念日がある場合は、それらを意識した温かいメッセージにする
-- 過去の関係性に応じて適切な敬語レベルを調整する
-` : '- お客様の会話履歴が登録されていないため、一般的な親しみやすい表現を使用する'}
-
-【要求】
-- ${messageType}を作成
-- トーン: ${tone}
-- 日本語で作成
-- ${userProfile?.store_type ? storeSpecificTerms.atmosphere : '夜職特有の親しみやすさ'}と温かみを重視
-- お客様への配慮と感謝の気持ちを表現
-- ${personalityStyle.tone}で自然で親しみやすい文章${toneAdjustment}
-- ユーザー入力内容を${speakingPattern.style}で自然な表現に変換してからメッセージに組み込む
-
-【出力形式】
-メッセージのみを出力してください。説明文は不要です。
-絵文字は適度に使用し（${userProfile ? personalityStyle.emoji_style : '😊、💕、✨、🌟'}を参考に）、過度にならないようにしてください。
-入力内容をそのまま引用せず、${speakingPattern.style}で自然な表現に変換してから使用してください。
-${personalityStyle.tone}を意識した、あなたらしいメッセージを作成してください。
+【出力】メッセージのみ、絵文字適度（${userProfile ? personalityStyle.emoji_style : '😊💕✨'}）、入力内容を自然に変換
 `;
 }

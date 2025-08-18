@@ -210,19 +210,34 @@ function MessageResultContent() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* 評価スター */}
-                <div className="flex justify-center space-x-2">
+                <div className="flex justify-center space-x-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       onClick={() => handleRating(star)}
-                      className={`text-2xl ${
-                        rating && rating >= star ? 'text-yellow-400' : 'text-gray-300'
-                      } hover:text-yellow-400 transition-colors`}
+                      className={`text-3xl p-2 rounded-lg transition-all duration-200 transform hover:scale-110 ${
+                        rating && rating >= star 
+                          ? 'text-yellow-500 bg-yellow-50 border-2 border-yellow-300 shadow-md' 
+                          : 'text-gray-300 hover:text-yellow-400 hover:bg-gray-50 border-2 border-transparent'
+                      }`}
                     >
                       ⭐
                     </button>
                   ))}
                 </div>
+                
+                {/* 評価の説明 */}
+                {rating && (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 font-medium">
+                      {rating === 1 && "😞 改善が必要"}
+                      {rating === 2 && "😐 あまり良くない"}
+                      {rating === 3 && "🙂 普通"}
+                      {rating === 4 && "😊 良い"}
+                      {rating === 5 && "🌟 とても良い"}
+                    </p>
+                  </div>
+                )}
                 
                 {/* フィードバック */}
                 <div>

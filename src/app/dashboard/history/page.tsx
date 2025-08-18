@@ -34,10 +34,15 @@ export default function MessageHistoryPage() {
         setUser(session.user);
         
         // メッセージ履歴と統計情報を取得
+        console.log('Fetching message history for user:', session.user.id);
+        
         const [messageHistory, userStats] = await Promise.all([
           getMessageHistory(session.user),
           getStats(session.user)
         ]);
+        
+        console.log('Retrieved message history:', messageHistory);
+        console.log('Retrieved stats:', userStats);
         
         setMessages(messageHistory);
         setStats(userStats);
@@ -226,13 +231,35 @@ export default function MessageHistoryPage() {
             <CardContent>
               {filteredMessages.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">メッセージ履歴がありません</p>
-                  <Button
-                    onClick={() => router.push('/dashboard/create')}
-                    className="mt-4"
-                  >
-                    新しいメッセージを作成
-                  </Button>
+                  <div className="text-6xl mb-4">📝</div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {selectedCustomer === "all" 
+                      ? "メッセージ履歴がありません" 
+                      : `${selectedCustomer}さんのメッセージがありません`}
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    {selectedCustomer === "all"
+                      ? "まだメッセージを作成していません。最初のメッセージを作成してみましょう！"
+                      : "このお客様へのメッセージがまだありません。新しいメッセージを作成しましょう！"}
+                  </p>
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => router.push('/dashboard/create')}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      ✨ 新しいメッセージを作成
+                    </Button>
+                    {selectedCustomer !== "all" && (
+                      <div>
+                        <Button
+                          onClick={() => setSelectedCustomer("all")}
+                          variant="outline"
+                        >
+                          全てのメッセージを表示
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
