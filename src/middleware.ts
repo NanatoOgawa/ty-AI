@@ -38,6 +38,11 @@ export async function middleware(request: NextRequest) {
 
   // 認証が必要なルート
   if (!session) {
+    // 既にログインページにいる場合はリダイレクトしない
+    if (request.nextUrl.pathname === '/login') {
+      return response;
+    }
+    
     // リダイレクトURLを動的に生成
     const loginUrl = new URL('/login', request.url);
     console.log("No session found, redirecting to login:", loginUrl.toString());

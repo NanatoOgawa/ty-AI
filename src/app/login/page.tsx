@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "../../lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [isLoading, setIsLoading] = useState(true);
+  const [useFallbackAuth, setUseFallbackAuth] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const redirectToDashboard = useCallback(() => {
     console.log("Redirecting to dashboard...");
@@ -32,6 +34,15 @@ export default function LoginPage() {
 
   useEffect(() => {
     let mounted = true;
+
+    // PKCEエラーをチェック
+    const pkceError = searchParams.get('pkce_error');
+    const authError = searchParams.get('error');
+    
+    if (pkceError === 'true' || (authError && authError.includes('code verifier'))) {
+      console.log("PKCE error detected, switching to fallback auth");
+      setUseFallbackAuth(true);
+    }
 
     const checkAuthState = async () => {
       try {
@@ -78,10 +89,40 @@ export default function LoginPage() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [redirectToDashboard]);
+  }, [redirectToDashboard, searchParams]);
+
+  // フォールバック認証の実装
+  const handleFallbackAuth = async () => {
+    try {
+      console.log("Starting fallback Google auth...");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: typeof window !== 'undefined' 
+            ? `${window.location.origin}/dashboard`
+            : '/dashboard'
+        }
+      });
+      
+      if (error) {
+        console.error("Fallback auth error:", error);
+      } else {
+        console.log("Fallback auth initiated");
+      }
+    } catch (error) {
+      console.error("Fallback auth exception:", error);
+    }
+  };
 
   // リダイレクトURLを動的に生成（改善版）
   const getRedirectUrl = () => {
+    if (useFallbackAuth) {
+      // フォールバック時は直接ダッシュボードに
+      return typeof window !== 'undefined' 
+        ? `${window.location.origin}/dashboard`
+        : '/dashboard';
+    }
+    
     if (typeof window !== 'undefined') {
       const currentOrigin = window.location.origin;
       const redirectUrl = `${currentOrigin}/auth/callback`;
@@ -140,39 +181,97 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Auth
-              supabaseClient={supabase}
-              appearance={{
-                theme: ThemeSupa,
-                variables: {
-                  default: {
-                    colors: {
-                      brand: "#3b82f6",
-                      brandAccent: "#2563eb",
+            {useFallbackAuth ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-yellow-50 rounded-md">
+                  <p className="text-sm text-yellow-800">
+                    認証に問題が発生しました。代替方法でログインを試行します。
+                  </p>
+                </div>
+                <button
+                  onClick={handleFallbackAuth}
+                  className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Googleでログイン（代替方法）
+                </button>
+                <button
+                  onClick={() => {
+                    setUseFallbackAuth(false);
+                    // URLパラメータをクリア
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('pkce_error');
+                    url.searchParams.delete('error');
+                    window.history.replaceState({}, '', url.toString());
+                  }}
+                  className="w-full text-sm text-gray-600 hover:text-gray-800"
+                >
+                  通常の方法に戻る
+                </button>
+              </div>
+            ) : (
+              <Auth
+                supabaseClient={supabase}
+                appearance={{
+                  theme: ThemeSupa,
+                  variables: {
+                    default: {
+                      colors: {
+                        brand: "#3b82f6",
+                        brandAccent: "#2563eb",
+                      },
                     },
                   },
-                },
-              }}
-              providers={["google"]}
-              redirectTo={getRedirectUrl()}
-              showLinks={false}
-              view="sign_in"
-              localization={{
-                variables: {
-                  sign_in: {
-                    email_label: "メールアドレス",
-                    password_label: "パスワード",
-                    button_label: "ログイン",
-                    loading_button_label: "ログイン中...",
-                    social_provider_text: "{{provider}}でログイン",
-                    link_text: "既にアカウントをお持ちですか？ログイン"
+                }}
+                providers={["google"]}
+                redirectTo={getRedirectUrl()}
+                showLinks={false}
+                view="sign_in"
+                localization={{
+                  variables: {
+                    sign_in: {
+                      email_label: "メールアドレス",
+                      password_label: "パスワード",
+                      button_label: "ログイン",
+                      loading_button_label: "ログイン中...",
+                      social_provider_text: "{{provider}}でログイン",
+                      link_text: "既にアカウントをお持ちですか？ログイン"
+                    }
                   }
-                }
-              }}
-            />
+                }}
+              />
+            )}
+            
+            {searchParams.get('error') && !useFallbackAuth && (
+              <div className="mt-4 p-4 bg-red-50 rounded-md">
+                <p className="text-sm text-red-800">
+                  認証エラー: {decodeURIComponent(searchParams.get('error') || '')}
+                </p>
+                <button
+                  onClick={() => setUseFallbackAuth(true)}
+                  className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+                >
+                  代替方法を試す
+                </button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">ページを読み込み中...</p>
+        </div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

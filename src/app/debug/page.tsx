@@ -13,6 +13,13 @@ interface DebugInfo {
     origin?: string;
     pathname?: string;
     userAgent?: string;
+    projectRef?: string;
+  };
+  requiredUrls?: {
+    currentSiteUrl?: string;
+    supabaseCallbackUrl?: string;
+    appCallbackUrl?: string;
+    appDashboardUrl?: string;
   };
   session?: {
     hasSession: boolean;
@@ -68,6 +75,10 @@ export default function DebugPage() {
           return acc;
         }, {});
 
+        // URL情報を解析
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const projectRef = supabaseUrl?.split('//')[1]?.split('.')[0];
+        
         const info = {
           timestamp: new Date().toISOString(),
           environment: {
@@ -76,7 +87,14 @@ export default function DebugPage() {
             NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
             origin: window.location.origin,
             pathname: window.location.pathname,
-            userAgent: navigator.userAgent
+            userAgent: navigator.userAgent,
+            projectRef: projectRef
+          },
+          requiredUrls: {
+            currentSiteUrl: window.location.origin,
+            supabaseCallbackUrl: `${supabaseUrl?.replace('.supabase.co', '')}.supabase.co/auth/v1/callback`,
+            appCallbackUrl: `${window.location.origin}/auth/callback`,
+            appDashboardUrl: `${window.location.origin}/dashboard`
           },
           session: {
             hasSession: !!session,
@@ -156,6 +174,13 @@ export default function DebugPage() {
               </pre>
             </div>
             
+            <div>
+              <h3 className="font-semibold mb-2">🔗 必要な設定URL</h3>
+              <pre className="bg-gray-100 p-4 rounded text-xs overflow-auto">
+                {JSON.stringify(debugInfo.requiredUrls, null, 2)}
+              </pre>
+            </div>
+            
             <div className="mt-6 p-4 bg-blue-50 rounded">
               <h3 className="font-semibold mb-2">🛠️ トラブルシューティング</h3>
               <ul className="text-sm space-y-1">
@@ -164,6 +189,42 @@ export default function DebugPage() {
                 <li>• 環境変数が正しく設定されているか確認してください</li>
                 <li>• Supabaseダッシュボードで認証設定を確認してください</li>
               </ul>
+            </div>
+            
+            <div className="mt-4 p-4 bg-yellow-50 rounded">
+              <h3 className="font-semibold mb-2">⚙️ Google Cloud Console設定確認</h3>
+              <div className="text-sm space-y-2">
+                <p className="font-medium">承認済みJavaScriptの生成元:</p>
+                <code className="block bg-white p-2 rounded text-xs">
+                  {debugInfo.requiredUrls?.currentSiteUrl}<br/>
+                  http://localhost:3000
+                </code>
+                
+                <p className="font-medium mt-3">承認済みリダイレクトURI:</p>
+                <code className="block bg-white p-2 rounded text-xs">
+                  {debugInfo.requiredUrls?.appCallbackUrl}<br/>
+                  {debugInfo.requiredUrls?.supabaseCallbackUrl}<br/>
+                  http://localhost:3000/auth/callback
+                </code>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-4 bg-green-50 rounded">
+              <h3 className="font-semibold mb-2">🔐 Supabase設定確認</h3>
+              <div className="text-sm space-y-2">
+                <p className="font-medium">Site URL:</p>
+                <code className="block bg-white p-2 rounded text-xs">
+                  {debugInfo.requiredUrls?.currentSiteUrl}
+                </code>
+                
+                <p className="font-medium mt-3">Redirect URLs:</p>
+                <code className="block bg-white p-2 rounded text-xs">
+                  {debugInfo.requiredUrls?.appCallbackUrl}<br/>
+                  {debugInfo.requiredUrls?.appDashboardUrl}<br/>
+                  http://localhost:3000/auth/callback<br/>
+                  http://localhost:3000/dashboard
+                </code>
+              </div>
             </div>
           </div>
         </CardContent>
