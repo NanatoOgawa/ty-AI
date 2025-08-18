@@ -9,7 +9,7 @@ import { Textarea } from "../../../components/ui/textarea";
 import { Label } from "../../../components/ui/label";
 import { PageHeader } from "../../../components/common/PageHeader";
 import { supabase } from "../../../lib/supabase/client";
-import type { GenerateMessageRequest, Customer } from "../../../types";
+import type { GenerateMessageRequest, Customer, MessageType, Tone } from "../../../types";
 
 import MobileNavigation from "../../../components/common/MobileNavigation";
 
@@ -112,24 +112,39 @@ function CreateMessageContent() {
       try {
         // お客様情報を取得または作成
         const { getOrCreateCustomer, saveMessageHistory } = await import('../../../lib/database/index');
+        console.log('About to save customer and message:', {
+          customerName: customerInfo.customerName,
+          messageType: customerInfo.messageType,
+          tone: customerInfo.tone,
+          messageLength: data.message.length,
+          userId: user.id
+        });
+        
         await getOrCreateCustomer(user, customerInfo.customerName);
+        console.log('Customer created/retrieved successfully');
         
         // メッセージ履歴を保存
         await saveMessageHistory(
           user,
           customerInfo.customerName,
           data.message,
-          customerInfo.messageType as 'thanks',
-          customerInfo.tone as 'polite',
+          customerInfo.messageType as MessageType,
+          customerInfo.tone as Tone,
           customerInfo.whatHappened
         );
         
         console.log('Message and history saved successfully');
       } catch (dbError) {
-        console.error('Database save error:', dbError);
+        console.error('Database save error details:', {
+          error: dbError,
+          customerName: customerInfo.customerName,
+          messageType: customerInfo.messageType,
+          tone: customerInfo.tone,
+          userId: user?.id
+        });
         // データベース保存に失敗してもメッセージ生成は成功させる
         // ユーザーには警告を表示
-        alert('メッセージは生成されましたが、履歴の保存に失敗しました。');
+        alert(`メッセージは生成されましたが、履歴の保存に失敗しました。\nエラー: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
       }
 
       // 結果ページにリダイレクト
