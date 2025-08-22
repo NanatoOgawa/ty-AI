@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase/client";
-import { getStats } from "../../lib/database/index";
+import { getStats, getUserProfile } from "../../lib/database/index";
 import type { User } from "@supabase/supabase-js";
-import type { UserStats } from "../../types";
+import type { UserStats, UserProfile } from "../../types";
 import MobileNavigation from "../../components/common/MobileNavigation";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<UserStats>({ messageCount: 0, customerCount: 0, monthlyCount: 0 });
   const router = useRouter();
@@ -28,12 +29,16 @@ export default function DashboardPage() {
         
         setUser(session.user);
         
-        // 統計情報を取得
+        // 統計情報とプロフィールを取得
         try {
-          const userStats = await getStats(session.user);
+          const [userStats, profile] = await Promise.all([
+            getStats(session.user),
+            getUserProfile(session.user)
+          ]);
           setStats(userStats);
+          setUserProfile(profile);
         } catch (error) {
-          console.error("Error loading stats:", error);
+          console.error("Error loading stats or profile:", error);
         }
       } catch (error) {
         console.error("Auth error:", error);
@@ -49,6 +54,8 @@ export default function DashboardPage() {
       console.log("Dashboard auth state change:", event, session);
       if (event === 'SIGNED_IN' && session) {
         setUser(session.user);
+        // プロフィールも再取得
+        getUserProfile(session.user).then(setUserProfile).catch(console.error);
         setIsLoading(false);
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out, redirecting to login");
@@ -88,20 +95,30 @@ export default function DashboardPage() {
               <h1 className="text-xl font-bold text-gray-900">
                 リピートつながるAI
               </h1>
-              <p className="text-sm text-gray-500">お客様との関係を深めるAI</p>
+              <p className="text-sm text-gray-500">
+                {userProfile?.work_name ? `${userProfile.work_name}さん` : 'お客様'}との関係を深めるAI
+              </p>
             </div>
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                router.push('/login');
-              }}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full touch-manipulation"
-              aria-label="ログアウト"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
+            <div className="flex items-center space-x-3">
+              {userProfile?.work_name && (
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">ログイン中</p>
+                  <p className="text-sm font-medium text-gray-900">{userProfile.work_name}</p>
+                </div>
+              )}
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  router.push('/login');
+                }}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full touch-manipulation"
+                aria-label="ログアウト"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -111,7 +128,7 @@ export default function DashboardPage() {
         {/* ウェルカムメッセージ */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-2">
-            ようこそ！
+            {userProfile?.work_name ? `ようこそ、${userProfile.work_name}さん！` : 'ようこそ！'}
           </h2>
           <p className="text-sm text-gray-600">
             AIがお客様との関係を深めるメッセージを生成します
@@ -150,7 +167,10 @@ export default function DashboardPage() {
                   プロフィール設定
                 </h3>
                 <p className="text-sm text-gray-600">
-                  あなたの情報を登録してメッセージを個別化
+                  {userProfile?.work_name 
+                    ? `現在の源氏名: ${userProfile.work_name}` 
+                    : 'あなたの情報を登録してメッセージを個別化'
+                  }
                 </p>
               </div>
               <div className="ml-auto">

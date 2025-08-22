@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { supabase } from "../../../lib/supabase/client";
-import { getMessageHistory, getStats } from "../../../lib/database/index";
+import { getMessageHistory, getStats, getUserProfile } from "../../../lib/database/index";
 import type { User } from "@supabase/supabase-js";
-import type { MessageHistory, UserStats } from "../../../types";
+import type { MessageHistory, UserStats, UserProfile } from "../../../types";
 import { MESSAGE_TYPE_LABELS, TONE_LABELS } from "../../../types";
 import { PageHeader } from "../../../components/common/PageHeader";
 import MobileNavigation from "../../../components/common/MobileNavigation";
@@ -15,6 +15,7 @@ import MobileNavigation from "../../../components/common/MobileNavigation";
 export default function MessageHistoryPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [messages, setMessages] = useState<MessageHistory[]>([]);
   const [stats, setStats] = useState<UserStats>({ messageCount: 0, customerCount: 0, monthlyCount: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -36,9 +37,10 @@ export default function MessageHistoryPage() {
         // メッセージ履歴と統計情報を取得
         console.log('Fetching message history for user:', session.user.id);
         
-        const [messageHistory, userStats] = await Promise.all([
+        const [messageHistory, userStats, profile] = await Promise.all([
           getMessageHistory(session.user),
-          getStats(session.user)
+          getStats(session.user),
+          getUserProfile(session.user)
         ]);
         
         console.log('Retrieved message history:', messageHistory);
@@ -46,6 +48,7 @@ export default function MessageHistoryPage() {
         
         setMessages(messageHistory);
         setStats(userStats);
+        setUserProfile(profile);
       } catch (error) {
         console.error("Error loading data:", error);
       } finally {
